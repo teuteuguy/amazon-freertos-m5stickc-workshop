@@ -1,3 +1,6 @@
 [submodule "amazon-freertos"]
 	path = amazon-freertos
 	url = https://github.com/aws/amazon-freertos
+[submodule "src/components/m5stickc-idf-official"]
+	path = src/components/m5stickc-idf-official
+	url = https://github.com/teuteuguy/m5stickc-idf-official
