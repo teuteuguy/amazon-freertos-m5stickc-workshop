@@ -72,8 +72,6 @@
 
 #include "m5stickc_demo.h"
 
-// #include "m5stickc.h"
-
 /* Logging Task Defines. */
 #define mainLOGGING_MESSAGE_QUEUE_LENGTH    ( 32 )
 #define mainLOGGING_TASK_STACK_SIZE         ( configMINIMAL_STACK_SIZE * 4 )
@@ -131,8 +129,7 @@ int app_main( void )
             ESP_ERROR_CHECK( esp_bt_controller_mem_release( ESP_BT_MODE_BLE ) );
         #endif /* if BLE_ENABLED */
         /* Run all demos. */
-        // DEMO_RUNNER_RunDemos();
-        vM5StickC_Run_Demo();
+        DEMO_RUNNER_RunDemos();
     }
 
     /* Start the scheduler.  Initialization that requires the OS to be running,

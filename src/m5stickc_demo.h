@@ -14,6 +14,8 @@
 
 #define M5CONFIG_IOT_BUTTON_DEMO_ENABLED
 
-void vM5StickC_Run_Demo(void);
+#define DEMO_RUNNER_RunDemos vM5StickC_Run_Demo
+
+esp_err_t vM5StickC_Run_Demo(void);
 
 #endif /* ifndef _M5STICKC_DEMO__H_ */

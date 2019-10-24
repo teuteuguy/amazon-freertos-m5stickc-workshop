@@ -159,67 +159,42 @@ void vNetworkDisconnectedCallback( const IotNetworkInterface_t * pNetworkInterfa
 void init_sleep_timer(void);
 void reset_sleep_timer(void);
 
-void vM5StickC_Demo_Init(void);
+esp_err_t vM5StickC_Demo_Init(void);
 
 /*-----------------------------------------------------------*/
 
 uint8_t myStickCID[6] = { 0 };
 
-void vM5StickC_Run_Demo(void)
+esp_err_t vM5StickC_Run_Demo(void)
 {
-    vM5StickC_Demo_Init();
+    esp_err_t res = vM5StickC_Demo_Init();
 
     esp_efuse_mac_get_default(myStickCID);
     configPRINTF(("myStickCID: %02x%02x%02x%02x%02x%02x\n", myStickCID[0], myStickCID[1], myStickCID[2], myStickCID[3], myStickCID[4], myStickCID[5]));
+
+    return res;
 }
 
 /*-----------------------------------------------------------*/
 
-static void vFrontButtonTask(void *arg)
+void m5button_event_handler(void * handler_arg, esp_event_base_t base, int32_t id, void * event_data)
 {
-    uint32_t event;
-    for (;;)
-    {
-        if (xQueueReceive(m5button_a.evt_queue, &event, portMAX_DELAY))
-        {
-            reset_sleep_timer();
-            // m5led_toggle();
-
-            // #ifdef M5CONFIG_IOT_BUTTON_DEMO_ENABLED
-            // /* These demos are shared with the C SDK and perform their own initialization and cleanup. */
-            // static demoContext_t mqttDemoContext =
-            //     {
-            //         .networkTypes = democonfigNETWORK_TYPES,
-            //         .demoFunction = iM5StickC_Demo_Code,
-            //         .networkConnectedCallback = vNetworkConnectedCallback,
-            //         .networkDisconnectedCallback = vNetworkDisconnectedCallback
-            //     };
-
-            // Iot_CreateDetachedThread(runDemoTask, &mqttDemoContext, democonfigDEMO_PRIORITY, democonfigDEMO_STACKSIZE);
-            // #endif // M5CONFIG_IOT_BUTTON_DEMO_ENABLED
-
-        }
-    }        
-}
-static void vSideButtonTask(void *arg)
-{
-    uint32_t event;
-    for (;;)
-    {
-        if (xQueueReceive(m5button_b.evt_queue, &event, portMAX_DELAY))
-        {
-            if (event == M5BUTTON_BUTTON_HOLD_EVENT)
-            {
-                esp_restart();
-            }            
-        }
+    if (base == M5BUTTON_A_EVENT_BASE && id == M5BUTTON_BUTTON_CLICK_EVENT) {
+        ESP_LOGI(TAG, "Need to reset timer");
+        reset_sleep_timer();
+    }
+    if (base == M5BUTTON_B_EVENT_BASE && id == M5BUTTON_BUTTON_HOLD_EVENT) {
+        ESP_LOGI(TAG, "Need to restart");
+        esp_restart();
     }
 }
 
-void vM5StickC_Demo_Init(void)
+esp_err_t vM5StickC_Demo_Init(void)
 {
+    esp_err_t res = ESP_FAIL;
+
     ESP_LOGI(TAG, "==============================");
-    ESP_LOGI(TAG, "Init ... Start");
+    ESP_LOGI(TAG, "vM5StickC_Demo_Init ... Start");
 
     esp_sleep_enable_ext0_wakeup(M5BUTTON_BUTTON_A_GPIO, 0);
 
@@ -227,64 +202,79 @@ void vM5StickC_Demo_Init(void)
     m5config.power.enable_lcd_backlight = false;
     m5config.power.lcd_backlight_level = 7;
 
-    esp_err_t res = ESP_FAIL;
     res = m5_init(&m5config);
-    ESP_LOGI(TAG, "Init ... %s", res == ESP_OK ? "OK" : "NOK");
+    ESP_LOGI(TAG, "vM5StickC_Demo_Init: m5_init ...             %s", res == ESP_OK ? "OK" : "NOK");
+    if (res != ESP_OK) return res;
 
+    res = esp_event_handler_register_with(m5_event_loop, M5BUTTON_A_EVENT_BASE, ESP_EVENT_ANY_ID, m5button_event_handler, NULL);
+    ESP_LOGI(TAG, "                     Button A registered ... %s", res == ESP_OK ? "OK" : "NOK");
+    if (res != ESP_OK) return res;
+
+    res = esp_event_handler_register_with(m5_event_loop, M5BUTTON_B_EVENT_BASE, ESP_EVENT_ANY_ID, m5button_event_handler, NULL);
+    ESP_LOGI(TAG, "                     Button B registered ... %s", res == ESP_OK ? "OK" : "NOK");
+    if (res != ESP_OK) return res;
+
+    TFT_FONT_ROTATE = 0;
+    TFT_TEXT_WRAP = 0;
+    TFT_FONT_TRANSPARENT = 0;
+    TFT_FONT_FORCEFIXED = 0;
+    TFT_GRAY_SCALE = 0;
+    TFT_setGammaCurve(DEFAULT_GAMMA_CURVE);
+    TFT_setRotation(LANDSCAPE_FLIP);
+    TFT_setFont(DEFAULT_FONT, NULL);
+    TFT_resetclipwin();
+    TFT_fillScreen(TFT_BLACK);
+    TFT_FONT_BACKGROUND = TFT_BLACK;
+    TFT_FONT_FOREGROUND = TFT_ORANGE;
+    res = m5display_on();
+    ESP_LOGI(TAG, "                     LCD Backlight ON ...    %s", res == ESP_OK ? "OK" : "NOK");
+    if (res != ESP_OK) return res;
+
+    #define SCREEN_OFFSET 2
+    #define SCREEN_LINE_HEIGHT 14
+    #define SCREEN_LINE_1  SCREEN_OFFSET + 0 * SCREEN_LINE_HEIGHT
+    #define SCREEN_LINE_2  SCREEN_OFFSET + 1 * SCREEN_LINE_HEIGHT
+    #define SCREEN_LINE_3  SCREEN_OFFSET + 2 * SCREEN_LINE_HEIGHT
+    #define SCREEN_LINE_4  SCREEN_OFFSET + 3 * SCREEN_LINE_HEIGHT
+
+    TFT_print((char *)"Timothee Cruse", 0, SCREEN_LINE_1);
+    TFT_print((char *)"tcruse@amazon.com", 0, SCREEN_LINE_2);
+    TFT_print((char *)"Principal IoT Architect", 0, SCREEN_LINE_4);
+
+    TFT_drawLine(0, M5DISPLAY_HEIGHT - 13 - 3, M5DISPLAY_WIDTH, M5DISPLAY_HEIGHT - 13 - 3, TFT_ORANGE);
+    
+    uint16_t vbat = 0, vaps = 0;
+    res = m5power_get_vbat(&vbat);
+    res |= m5power_get_vaps(&vaps);
     if (res == ESP_OK)
     {
-        xTaskCreate(vFrontButtonTask, "vFrontButtonTask", 2048, NULL, 10, NULL);
-        xTaskCreate(vSideButtonTask, "vSideButtonTask", 2048, NULL, 100, NULL);
+        float b = vbat * 1.1 / 1000;
+        float c = vaps * 1.4 / 1000;
+        uint8_t battery = ((b - 3.0) / 1.2) * 100;
+        char pVbatStr[9] = {0};
 
-        TFT_FONT_ROTATE = 0;
-        TFT_TEXT_WRAP = 0;
-        TFT_FONT_TRANSPARENT = 0;
-        TFT_FONT_FORCEFIXED = 0;
-        TFT_GRAY_SCALE = 0;
-        TFT_setGammaCurve(DEFAULT_GAMMA_CURVE);
-        TFT_setRotation(LANDSCAPE_FLIP);
-        TFT_setFont(DEFAULT_FONT, NULL);
-        TFT_resetclipwin();
-        TFT_fillScreen(TFT_BLACK);
-        TFT_FONT_BACKGROUND = TFT_BLACK;
-        TFT_FONT_FOREGROUND = TFT_ORANGE;
-        ESP_LOGD(TAG, "Turning backlight off");
-        m5display_on();
+        ESP_LOGI(TAG, "                     VBat:                   %u", vbat);
+        ESP_LOGI(TAG, "                     VAps:                   %u", vaps);
+        ESP_LOGI(TAG, "                     battery:                %u", battery);
+        ESP_LOGI(TAG, "                     c:                      %f", c);
 
-        TFT_print((char *)"AWS IoT", CENTER, (M5DISPLAY_HEIGHT - 24) / 2 - 12);
-        #ifdef M5CONFIG_IOT_BUTTON_DEMO_ENABLED
-        TFT_print((char *)"IoT Button Demo", CENTER, (M5DISPLAY_HEIGHT - 24) / 2 + 12);
-        #endif // M5CONFIG_IOT_BUTTON_DEMO_ENABLED
-
-        TFT_drawLine(0, M5DISPLAY_HEIGHT - 13 - 3, M5DISPLAY_WIDTH, M5DISPLAY_HEIGHT - 13 - 3, TFT_ORANGE);
-        
-        uint16_t vbat = 0, vaps = 0;        
-        res = m5power_get_vbat(&vbat);
-        res |= m5power_get_vaps(&vaps);
-        if (res == ESP_OK)
-        {
-            float b = vbat * 1.1 / 1000;
-            float c = vaps * 1.4 / 1000;
-            uint8_t battery = ((b - 3.0) / 1.2) * 100;
-            char pVbatStr[9] = {0};
-
-            ESP_LOGI(TAG, "VBat: %u, VAps: %u, battery: %u, c: %f", vbat, vaps, battery, c);
-
-            if (c >= 4.5) {
-                snprintf( pVbatStr, 9, "CHG: %u%%", battery > 100 ? 100 : battery );
-            } else {
-                snprintf( pVbatStr, 9, "BAT: %u%%", battery > 100 ? 100 : battery );
-            }
-
-            ESP_LOGD(TAG, "%s", pVbatStr);
-            TFT_print(pVbatStr, 1, M5DISPLAY_HEIGHT - 13);
+        if (c >= 4.5) {
+            snprintf( pVbatStr, 9, "CHG: %u%%", battery > 100 ? 100 : battery );
+        } else {
+            snprintf( pVbatStr, 9, "BAT: %u%%", battery > 100 ? 100 : battery );
         }
 
-        init_sleep_timer();
+        ESP_LOGI(TAG, "                     Charging str:           %s", pVbatStr);
+        TFT_print(pVbatStr, 1, M5DISPLAY_HEIGHT - 13);
+    } else {
+        ESP_LOGI(TAG, "                     VBat/VAps ...           NOK");
     }
 
-    ESP_LOGI(TAG, "Init ... done!");
+    init_sleep_timer();
+
+    ESP_LOGI(TAG, "vM5StickC_Demo_Init ... done!");
     ESP_LOGI(TAG, "==============================");
+    return res;
 }
 
 /*-----------------------------------------------------------*/
