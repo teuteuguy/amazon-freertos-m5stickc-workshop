@@ -11,7 +11,7 @@ endif
 
 ifndef IDF_PATH
 export IDF_PATH := $(AMAZON_FREERTOS_PATH)/vendors/espressif/esp-idf
-EXTRA_COMPONENT_DIRS := $(CURDIR)/src/components $(AMAZON_FREERTOS_PATH)/vendors/espressif/boards/m5stickc/aws_demos/application_code/espressif_code
+EXTRA_COMPONENT_DIRS := $(CURDIR)/application_code/components $(AMAZON_FREERTOS_PATH)/vendors/espressif/boards/m5stickc/aws_demos/application_code/espressif_code
 
 include $(IDF_PATH)/make/project.mk
 

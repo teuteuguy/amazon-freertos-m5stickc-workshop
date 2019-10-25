@@ -412,7 +412,6 @@ static int _initializeDemo( void )
 static void _cleanupDemo( void )
 {
     IotMqtt_Cleanup();
-    // gpio_set_level(LED, LED_OFF);
 }
 
 /*-----------------------------------------------------------*/
@@ -543,8 +542,9 @@ static int _establishMqttConnection( bool awsIotMqttMode,
  */
 static int _publishMessage( IotMqttConnection_t mqttConnection,
                             const char * pTopicName,
+                            uint16_t topicNameLength,
                             const char * pPayload,
-                            size_t payloadLength )
+                            uint16_t payloadLength )
 {
     int status = EXIT_SUCCESS;
     IotMqttError_t publishStatus = IOT_MQTT_STATUS_PENDING;
@@ -557,7 +557,7 @@ static int _publishMessage( IotMqttConnection_t mqttConnection,
 
     /* Set the common members of the publish info. */
     publishInfo.qos = IOT_MQTT_QOS_1;
-    publishInfo.topicNameLength = TOPIC_BUFFER_LENGTH;
+    publishInfo.topicNameLength = topicNameLength;
     publishInfo.pPayload = pPayload;
     publishInfo.payloadLength = payloadLength;
     publishInfo.pTopicName = pTopicName;
@@ -618,7 +618,7 @@ int m5stickc_demo_aws_iot_button(bool awsIotMqttMode,
                  void * pNetworkServerInfo,
                  void * pNetworkCredentialInfo,
                  const IotNetworkInterface_t * pNetworkInterface,
-                 const char * pFormat )
+                 const char * payloadFormat )
 {
     /* Return value of this function and the exit status of this program. */
     int status = EXIT_SUCCESS;
@@ -629,11 +629,14 @@ int m5stickc_demo_aws_iot_button(bool awsIotMqttMode,
     /* Topic and Payload buffers */
     char pTopic[ TOPIC_BUFFER_LENGTH ] = { 0 };
     char pPublishPayload[ PUBLISH_PAYLOAD_BUFFER_LENGTH ] = { 0 };
-    size_t publishPayloadLength = 0;
+    uint16_t publishPayloadLength;
 
     /* Generate the payload for the PUBLISH. */
-    status = snprintf( pPublishPayload, PUBLISH_PAYLOAD_BUFFER_LENGTH, pFormat,
+    status = snprintf( pPublishPayload, PUBLISH_PAYLOAD_BUFFER_LENGTH, payloadFormat,
                         myStickCID[0], myStickCID[1], myStickCID[2], myStickCID[3], myStickCID[4], myStickCID[5] );
+
+
+    ESP_LOGE(TAG, "Going to publish: (%u)", ( size_t ) status);
 
     /* Check for errors from snprintf. */
     if( status < 0 )
@@ -644,8 +647,9 @@ int m5stickc_demo_aws_iot_button(bool awsIotMqttMode,
     }
     else
     {
+        publishPayloadLength = status;
         status = EXIT_SUCCESS;
-        publishPayloadLength = (size_t) status;
+        ESP_LOGE(TAG, "Going to publish: (%u)", publishPayloadLength);
 
         /* Generate the topic. */
         status = snprintf( pTopic, TOPIC_BUFFER_LENGTH, TOPIC_FORMAT, 
@@ -693,7 +697,8 @@ int m5stickc_demo_aws_iot_button(bool awsIotMqttMode,
         connectionEstablished = true;
 
         /* PUBLISH message */
-        status = _publishMessage( mqttConnection, pTopic, pPublishPayload, publishPayloadLength );
+        ESP_LOGE(TAG, "Going to publish: %s (%u) on %s", pPublishPayload, publishPayloadLength, pTopic);
+        status = _publishMessage( mqttConnection, pTopic, TOPIC_BUFFER_LENGTH, pPublishPayload, publishPayloadLength );
 
     }
 
