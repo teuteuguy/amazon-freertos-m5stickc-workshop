@@ -1,4 +1,4 @@
-[submodule "amazon-freertos"]
-	path = amazon-freertos
-	url = https://github.com/aws/amazon-freertos
-	ignore = dirty
+[submodule "m5stickc-idf"]
+	path = src/components/m5stickc-idf
+	url = https://github.com/teuteuguy/m5stickc-idf
+	branch = test-tim

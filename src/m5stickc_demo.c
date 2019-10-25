@@ -100,12 +100,13 @@ static const char *TAG = "m5stickc_demo";
 /**
  * @brief Format string of the PUBLISH messages in this demo.
  */
-#define PUBLISH_PAYLOAD_FORMAT                   "{\"serialNumber\": \"%02x%02x%02x%02x%02x%02x\",\"clickType\": \"SINGLE\"}"
+#define PUBLISH_PAYLOAD_FORMAT_SINGLE                   "{\"serialNumber\": \"%02x%02x%02x%02x%02x%02x\",\"clickType\": \"SINGLE\"}"
+#define PUBLISH_PAYLOAD_FORMAT_HOLD                     "{\"serialNumber\": \"%02x%02x%02x%02x%02x%02x\",\"clickType\": \"HOLD\"}"
 
 /**
  * @brief Size of the buffer that holds the PUBLISH messages in this demo.
  */
-#define PUBLISH_PAYLOAD_BUFFER_LENGTH            ( sizeof( PUBLISH_PAYLOAD_FORMAT ) + 24 )
+#define PUBLISH_PAYLOAD_BUFFER_LENGTH            ( sizeof( PUBLISH_PAYLOAD_FORMAT_SINGLE ) + 24 )
 
 /**
  * @brief The maximum number of times each PUBLISH in this demo will be retried.
@@ -141,12 +142,12 @@ static const char *TAG = "m5stickc_demo";
 
 /*-----------------------------------------------------------*/
 
-/* Declaration of function. */
-int iM5StickC_Demo_Code(bool awsIotMqttMode,
-                   const char *pIdentifier,
-                   void *pNetworkServerInfo,
-                   void *pNetworkCredentialInfo,
-                   const IotNetworkInterface_t *pNetworkInterface);
+/* Declaration of demo functions. */
+#ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
+int m5stickc_demo_aws_iot_button_single(bool awsIotMqttMode, const char *pIdentifier, void *pNetworkServerInfo, void *pNetworkCredentialInfo, const IotNetworkInterface_t *pNetworkInterface);
+int m5stickc_demo_aws_iot_button_hold(bool awsIotMqttMode, const char *pIdentifier, void *pNetworkServerInfo, void *pNetworkCredentialInfo, const IotNetworkInterface_t *pNetworkInterface);
+int m5stickc_demo_aws_iot_button(bool awsIotMqttMode, const char *pIdentifier, void *pNetworkServerInfo, void *pNetworkCredentialInfo, const IotNetworkInterface_t *pNetworkInterface, const char * pPayload);
+#endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
 
 void vNetworkConnectedCallback( bool awsIotMqttMode,
                                 const char * pIdentifier,
@@ -159,15 +160,15 @@ void vNetworkDisconnectedCallback( const IotNetworkInterface_t * pNetworkInterfa
 void init_sleep_timer(void);
 void reset_sleep_timer(void);
 
-esp_err_t vM5StickC_Demo_Init(void);
+esp_err_t m5stickc_demo_init(void);
 
 /*-----------------------------------------------------------*/
 
 uint8_t myStickCID[6] = { 0 };
 
-esp_err_t vM5StickC_Run_Demo(void)
+esp_err_t m5stickc_demo_run(void)
 {
-    esp_err_t res = vM5StickC_Demo_Init();
+    esp_err_t res = m5stickc_demo_init();
 
     esp_efuse_mac_get_default(myStickCID);
     configPRINTF(("myStickCID: %02x%02x%02x%02x%02x%02x\n", myStickCID[0], myStickCID[1], myStickCID[2], myStickCID[3], myStickCID[4], myStickCID[5]));
@@ -180,8 +181,24 @@ esp_err_t vM5StickC_Run_Demo(void)
 void m5button_event_handler(void * handler_arg, esp_event_base_t base, int32_t id, void * event_data)
 {
     if (base == M5BUTTON_A_EVENT_BASE && id == M5BUTTON_BUTTON_CLICK_EVENT) {
-        ESP_LOGI(TAG, "Need to reset timer");
+        ESP_LOGI(TAG, "Button A Pressed");
+
+        #ifdef M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+        ESP_LOGI(TAG, "Reseting sleep timer");
         reset_sleep_timer();
+        #endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+
+        #ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
+        static demoContext_t mqttDemoContext =
+            {
+                .networkTypes = democonfigNETWORK_TYPES,
+                .demoFunction = m5stickc_demo_aws_iot_button_single,
+                .networkConnectedCallback = vNetworkConnectedCallback,
+                .networkDisconnectedCallback = vNetworkDisconnectedCallback
+            };
+
+        Iot_CreateDetachedThread(runDemoTask, &mqttDemoContext, democonfigDEMO_PRIORITY, democonfigDEMO_STACKSIZE);
+        #endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
     }
     if (base == M5BUTTON_B_EVENT_BASE && id == M5BUTTON_BUTTON_HOLD_EVENT) {
         ESP_LOGI(TAG, "Need to restart");
@@ -189,29 +206,27 @@ void m5button_event_handler(void * handler_arg, esp_event_base_t base, int32_t i
     }
 }
 
-esp_err_t vM5StickC_Demo_Init(void)
+esp_err_t m5stickc_demo_init(void)
 {
     esp_err_t res = ESP_FAIL;
 
-    ESP_LOGI(TAG, "==============================");
-    ESP_LOGI(TAG, "vM5StickC_Demo_Init ... Start");
-
-    esp_sleep_enable_ext0_wakeup(M5BUTTON_BUTTON_A_GPIO, 0);
+    ESP_LOGI(TAG, "======================================================");
+    ESP_LOGI(TAG, "m5stickc_demo_init: ...");
 
     m5stickc_config_t m5config;
     m5config.power.enable_lcd_backlight = false;
     m5config.power.lcd_backlight_level = 7;
 
     res = m5_init(&m5config);
-    ESP_LOGI(TAG, "vM5StickC_Demo_Init: m5_init ...             %s", res == ESP_OK ? "OK" : "NOK");
+    ESP_LOGI(TAG, "m5stickc_demo_init: m5_init ...             %s", res == ESP_OK ? "OK" : "NOK");
     if (res != ESP_OK) return res;
 
     res = esp_event_handler_register_with(m5_event_loop, M5BUTTON_A_EVENT_BASE, ESP_EVENT_ANY_ID, m5button_event_handler, NULL);
-    ESP_LOGI(TAG, "                     Button A registered ... %s", res == ESP_OK ? "OK" : "NOK");
+    ESP_LOGI(TAG, "                    Button A registered ... %s", res == ESP_OK ? "OK" : "NOK");
     if (res != ESP_OK) return res;
 
     res = esp_event_handler_register_with(m5_event_loop, M5BUTTON_B_EVENT_BASE, ESP_EVENT_ANY_ID, m5button_event_handler, NULL);
-    ESP_LOGI(TAG, "                     Button B registered ... %s", res == ESP_OK ? "OK" : "NOK");
+    ESP_LOGI(TAG, "                    Button B registered ... %s", res == ESP_OK ? "OK" : "NOK");
     if (res != ESP_OK) return res;
 
     TFT_FONT_ROTATE = 0;
@@ -227,7 +242,7 @@ esp_err_t vM5StickC_Demo_Init(void)
     TFT_FONT_BACKGROUND = TFT_BLACK;
     TFT_FONT_FOREGROUND = TFT_ORANGE;
     res = m5display_on();
-    ESP_LOGI(TAG, "                     LCD Backlight ON ...    %s", res == ESP_OK ? "OK" : "NOK");
+    ESP_LOGI(TAG, "                    LCD Backlight ON ...    %s", res == ESP_OK ? "OK" : "NOK");
     if (res != ESP_OK) return res;
 
     #define SCREEN_OFFSET 2
@@ -237,9 +252,14 @@ esp_err_t vM5StickC_Demo_Init(void)
     #define SCREEN_LINE_3  SCREEN_OFFSET + 2 * SCREEN_LINE_HEIGHT
     #define SCREEN_LINE_4  SCREEN_OFFSET + 3 * SCREEN_LINE_HEIGHT
 
-    TFT_print((char *)"Timothee Cruse", 0, SCREEN_LINE_1);
-    TFT_print((char *)"tcruse@amazon.com", 0, SCREEN_LINE_2);
-    TFT_print((char *)"Principal IoT Architect", 0, SCREEN_LINE_4);
+    TFT_print((char *)"Amazon FreeRTOS", CENTER, SCREEN_LINE_1);
+    TFT_print((char *)"workshop", CENTER, SCREEN_LINE_2);
+    #ifdef M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+    TFT_print((char *)"LAB0 - SETUP & SLEEP", CENTER, SCREEN_LINE_4);
+    #endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+    #ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
+    TFT_print((char *)"LAB1 - AWS IOT BUTTON", CENTER, SCREEN_LINE_4);
+    #endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
 
     TFT_drawLine(0, M5DISPLAY_HEIGHT - 13 - 3, M5DISPLAY_WIDTH, M5DISPLAY_HEIGHT - 13 - 3, TFT_ORANGE);
     
@@ -253,10 +273,10 @@ esp_err_t vM5StickC_Demo_Init(void)
         uint8_t battery = ((b - 3.0) / 1.2) * 100;
         char pVbatStr[9] = {0};
 
-        ESP_LOGI(TAG, "                     VBat:                   %u", vbat);
-        ESP_LOGI(TAG, "                     VAps:                   %u", vaps);
-        ESP_LOGI(TAG, "                     battery:                %u", battery);
-        ESP_LOGI(TAG, "                     c:                      %f", c);
+        ESP_LOGI(TAG, "                    VBat:                   %u", vbat);
+        ESP_LOGI(TAG, "                    VAps:                   %u", vaps);
+        ESP_LOGI(TAG, "                    battery:                %u", battery);
+        ESP_LOGI(TAG, "                    c:                      %f", c);
 
         if (c >= 4.5) {
             snprintf( pVbatStr, 9, "CHG: %u%%", battery > 100 ? 100 : battery );
@@ -264,22 +284,26 @@ esp_err_t vM5StickC_Demo_Init(void)
             snprintf( pVbatStr, 9, "BAT: %u%%", battery > 100 ? 100 : battery );
         }
 
-        ESP_LOGI(TAG, "                     Charging str:           %s", pVbatStr);
+        ESP_LOGI(TAG, "                    Charging str:           %s", pVbatStr);
         TFT_print(pVbatStr, 1, M5DISPLAY_HEIGHT - 13);
     } else {
-        ESP_LOGI(TAG, "                     VBat/VAps ...           NOK");
+        ESP_LOGI(TAG, "                    VBat/VAps ...           NOK");
     }
 
-    init_sleep_timer();
+    ESP_LOGI(TAG, "m5stickc_demo_init: ... done");
+    ESP_LOGI(TAG, "======================================================");
 
-    ESP_LOGI(TAG, "vM5StickC_Demo_Init ... done!");
-    ESP_LOGI(TAG, "==============================");
+    #ifdef M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+    esp_sleep_enable_ext0_wakeup(M5BUTTON_BUTTON_A_GPIO, 0);
+    init_sleep_timer();
+    #endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+
     return res;
 }
 
 /*-----------------------------------------------------------*/
 
-static const TickType_t xSleepTimerFrequency_ms = 5000UL;
+static const TickType_t xSleepTimerFrequency_ms = 10000UL;
 static TimerHandle_t xSleepTimer;
 
 static void prvSleepTimerCallback( TimerHandle_t pxTimer )
@@ -513,17 +537,19 @@ static int _establishMqttConnection( bool awsIotMqttMode,
  *
  * @param[in] mqttConnection The MQTT connection to use for publishing.
  * @param[in] pTopicName The topic name for publishing.
+ * @param[in] pPayload The payload for publishing.
  *
  * @return `EXIT_SUCCESS` if all messages are published; `EXIT_FAILURE` otherwise.
  */
 static int _publishMessage( IotMqttConnection_t mqttConnection,
-                            const char * pTopicName)
+                            const char * pTopicName,
+                            const char * pPayload,
+                            size_t payloadLength )
 {
     int status = EXIT_SUCCESS;
     IotMqttError_t publishStatus = IOT_MQTT_STATUS_PENDING;
     IotMqttPublishInfo_t publishInfo = IOT_MQTT_PUBLISH_INFO_INITIALIZER;
     IotMqttCallbackInfo_t publishComplete = IOT_MQTT_CALLBACK_INFO_INITIALIZER;
-    char pPublishPayload[ PUBLISH_PAYLOAD_BUFFER_LENGTH ] = { 0 };
 
     /* The MQTT library should invoke this callback when a PUBLISH message
      * is successfully transmitted. */
@@ -532,54 +558,20 @@ static int _publishMessage( IotMqttConnection_t mqttConnection,
     /* Set the common members of the publish info. */
     publishInfo.qos = IOT_MQTT_QOS_1;
     publishInfo.topicNameLength = TOPIC_BUFFER_LENGTH;
-    publishInfo.pPayload = pPublishPayload;
+    publishInfo.pPayload = pPayload;
+    publishInfo.payloadLength = payloadLength;
+    publishInfo.pTopicName = pTopicName;
     publishInfo.retryMs = PUBLISH_RETRY_MS;
     publishInfo.retryLimit = PUBLISH_RETRY_LIMIT;
 
-    /* Choose a topic name (round-robin through the array of topic names). */
-    publishInfo.pTopicName = pTopicName;
+    /* PUBLISH a message. This is an asynchronous function that notifies of
+    * completion through a callback. */
+    publishStatus = IotMqtt_Publish( mqttConnection, &publishInfo, 0, &publishComplete, NULL );
 
-    /* Generate the payload for the PUBLISH. */
-    status = snprintf( pPublishPayload,
-                        PUBLISH_PAYLOAD_BUFFER_LENGTH,
-                        PUBLISH_PAYLOAD_FORMAT,
-                        myStickCID[0],
-                        myStickCID[1],
-                        myStickCID[2],
-                        myStickCID[3],
-                        myStickCID[4],
-                        myStickCID[5]
-                        );
-
-    /* Check for errors from snprintf. */
-    if( status < 0 )
+    if( publishStatus != IOT_MQTT_STATUS_PENDING )
     {
-        IotLogError( "Failed to generate MQTT PUBLISH payload." );
+        IotLogError( "MQTT PUBLISH returned error %s.", IotMqtt_strerror( publishStatus ) );
         status = EXIT_FAILURE;
-    }
-    else
-    {
-        publishInfo.payloadLength = ( size_t ) status;
-        status = EXIT_SUCCESS;
-    }
-
-    if( status == EXIT_SUCCESS )
-    {
-
-        /* PUBLISH a message. This is an asynchronous function that notifies of
-        * completion through a callback. */
-        publishStatus = IotMqtt_Publish( mqttConnection,
-                                        &publishInfo,
-                                        0,
-                                        &publishComplete,
-                                        NULL );
-
-        if( publishStatus != IOT_MQTT_STATUS_PENDING )
-        {
-            IotLogError( "MQTT PUBLISH returned error %s.", IotMqtt_strerror( publishStatus ) );
-            status = EXIT_FAILURE;
-        }
-
     }
 
     return status;
@@ -587,6 +579,7 @@ static int _publishMessage( IotMqttConnection_t mqttConnection,
 
 /*-----------------------------------------------------------*/
 
+#ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
 /**
  * @brief The function that runs the MQTT demo, called by the demo runner.
  *
@@ -601,30 +594,64 @@ static int _publishMessage( IotMqttConnection_t mqttConnection,
  *
  * @return `EXIT_SUCCESS` if the demo completes successfully; `EXIT_FAILURE` otherwise.
  */
-int iM5StickC_Demo_Code( bool awsIotMqttMode,
+int m5stickc_demo_aws_iot_button_single( bool awsIotMqttMode,
                  const char * pIdentifier,
                  void * pNetworkServerInfo,
                  void * pNetworkCredentialInfo,
                  const IotNetworkInterface_t * pNetworkInterface)
+{
+    return m5stickc_demo_aws_iot_button(awsIotMqttMode, pIdentifier, pNetworkServerInfo, pNetworkCredentialInfo, pNetworkInterface,
+        PUBLISH_PAYLOAD_FORMAT_SINGLE );
+}
+int m5stickc_demo_aws_iot_button_hold( bool awsIotMqttMode,
+                 const char * pIdentifier,
+                 void * pNetworkServerInfo,
+                 void * pNetworkCredentialInfo,
+                 const IotNetworkInterface_t * pNetworkInterface)
+{
+    return m5stickc_demo_aws_iot_button(awsIotMqttMode, pIdentifier, pNetworkServerInfo, pNetworkCredentialInfo, pNetworkInterface,
+        PUBLISH_PAYLOAD_FORMAT_HOLD );
+}
+
+int m5stickc_demo_aws_iot_button(bool awsIotMqttMode,
+                 const char * pIdentifier,
+                 void * pNetworkServerInfo,
+                 void * pNetworkCredentialInfo,
+                 const IotNetworkInterface_t * pNetworkInterface,
+                 const char * pFormat )
 {
     /* Return value of this function and the exit status of this program. */
     int status = EXIT_SUCCESS;
 
     /* Handle of the MQTT connection used in this demo. */
     IotMqttConnection_t mqttConnection = IOT_MQTT_CONNECTION_INITIALIZER;
-    
-    /* Generate the topic. */
+
+    /* Topic and Payload buffers */
     char pTopic[ TOPIC_BUFFER_LENGTH ] = { 0 };
-    status = snprintf( pTopic, 
-                TOPIC_BUFFER_LENGTH, 
-                TOPIC_FORMAT, 
-                myStickCID[0],
-                myStickCID[1],
-                myStickCID[2],
-                myStickCID[3],
-                myStickCID[4],
-                myStickCID[5] 
-            );
+    char pPublishPayload[ PUBLISH_PAYLOAD_BUFFER_LENGTH ] = { 0 };
+    size_t publishPayloadLength = 0;
+
+    /* Generate the payload for the PUBLISH. */
+    status = snprintf( pPublishPayload, PUBLISH_PAYLOAD_BUFFER_LENGTH, pFormat,
+                        myStickCID[0], myStickCID[1], myStickCID[2], myStickCID[3], myStickCID[4], myStickCID[5] );
+
+    /* Check for errors from snprintf. */
+    if( status < 0 )
+    {
+        IotLogError( "Failed to generate MQTT PUBLISH payload: %d.", (int) status );
+        status = EXIT_FAILURE;
+        return status;
+    }
+    else
+    {
+        status = EXIT_SUCCESS;
+        publishPayloadLength = (size_t) status;
+
+        /* Generate the topic. */
+        status = snprintf( pTopic, TOPIC_BUFFER_LENGTH, TOPIC_FORMAT, 
+                    myStickCID[0], myStickCID[1], myStickCID[2], myStickCID[3], myStickCID[4], myStickCID[5] );
+
+    }
 
     /* Check for errors from snprintf. */
     if( status < 0 )
@@ -665,8 +692,8 @@ int iM5StickC_Demo_Code( bool awsIotMqttMode,
         /* Mark the MQTT connection as established. */
         connectionEstablished = true;
 
-        /* PUBLISH (and wait) for all messages. */
-        status = _publishMessage( mqttConnection, pTopic );
+        /* PUBLISH message */
+        status = _publishMessage( mqttConnection, pTopic, pPublishPayload, publishPayloadLength );
 
     }
 
@@ -682,7 +709,9 @@ int iM5StickC_Demo_Code( bool awsIotMqttMode,
         _cleanupDemo();
     }
 
-    return status;
+    return status;    
 }
+
+#endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
 
 /*-----------------------------------------------------------*/
