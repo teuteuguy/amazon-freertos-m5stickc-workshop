@@ -6,17 +6,18 @@
 PROJECT_NAME := aws_demo
 
 ifndef AMAZON_FREERTOS_PATH
-export AMAZON_FREERTOS_PATH := $(CURDIR)/amazon-freertos
+export AMAZON_FREERTOS_PATH := $(CURDIR)/../../../../..
 endif
 
 ifndef IDF_PATH
 export IDF_PATH := $(AMAZON_FREERTOS_PATH)/vendors/espressif/esp-idf
-EXTRA_COMPONENT_DIRS := $(CURDIR)/src/components $(CURDIR)/src/espressif_code
+EXTRA_COMPONENT_DIRS := $(CURDIR)/src/components $(AMAZON_FREERTOS_PATH)/vendors/espressif/boards/m5stickc/aws_demos/application_code/espressif_code
 
 include $(IDF_PATH)/make/project.mk
 
 else
 $(error ERROR: IDF_PATH is defined in your environement, it will not point to vendors/espressif/esp-idf. To remove the variable run the command "unset IDF_PATH")
 endif
+
 
 

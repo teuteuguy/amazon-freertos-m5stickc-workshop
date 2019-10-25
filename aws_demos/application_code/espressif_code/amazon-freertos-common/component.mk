@@ -6,17 +6,17 @@
 # in the build directory. This behavior is entirely configurable,
 # please read the ESP-IDF documents if you need to do this.
 
-AMAZON_FREERTOS_SDK_DIR := ../../../amazon-freertos/libraries/c_sdk
-AMAZON_FREERTOS_3RD_PARTY_DIR := ../../../amazon-freertos/libraries/3rdparty
-AMAZON_FREERTOS_ABSTRACTIONS_DIR := ../../../amazon-freertos/libraries/abstractions
-AMAZON_FREERTOS_ARF_PLUS_DIR := ../../../amazon-freertos/libraries/freertos_plus
-AMAZON_FREERTOS_ARF_KERNEL := ../../../amazon-freertos/freertos_kernel
-AMAZON_FREERTOS_ARF_PORTS := ../../../amazon-freertos/vendors/espressif/boards/esp32/ports
-AMAZON_FREERTOS_TESTS_DIR := ../../../amazon-freertos/tests
-AMAZON_FREERTOS_DEMOS_DIR := ../../../amazon-freertos/demos
+AMAZON_FREERTOS_SDK_DIR := ../../../../../../../../libraries/c_sdk
+AMAZON_FREERTOS_3RD_PARTY_DIR := ../../../../../../../../libraries/3rdparty
+AMAZON_FREERTOS_ABSTRACTIONS_DIR := ../../../../../../../../libraries/abstractions
+AMAZON_FREERTOS_ARF_PLUS_DIR := ../../../../../../../../libraries/freertos_plus
+AMAZON_FREERTOS_ARF_KERNEL := ../../../../../../../../freertos_kernel
+AMAZON_FREERTOS_ARF_PORTS := ../../../../../../../../vendors/espressif/boards/esp32/ports
+AMAZON_FREERTOS_TESTS_DIR := ../../../../../../../../tests
+AMAZON_FREERTOS_DEMOS_DIR := ../../../../../../../../demos
 
 ifndef AMAZON_FREERTOS_ENABLE_UNIT_TEST
-AMAZON_FREERTOS_ESP32 := ../../..
+AMAZON_FREERTOS_ESP32 := ../../../../../../../../vendors/espressif/boards/esp32/aws_demos
 else
 AMAZON_FREERTOS_ESP32 := ../../../../../../../../vendors/espressif/boards/esp32/aws_tests
 endif

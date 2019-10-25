@@ -1,4 +1,0 @@
-[submodule "src/components/m5stickc-idf"]
-	path = src/components/m5stickc-idf
-	url = https://github.com/teuteuguy/m5stickc-idf
-	branch = test-tim
