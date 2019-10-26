@@ -49,6 +49,9 @@ uint8_t myStickCID[6] = { 0 };
 void init_sleep_timer(void);
 void reset_sleep_timer(void);
 
+esp_err_t draw_battery_level(void);
+void battery_refresh_timer_init(void);
+
 esp_err_t m5stickc_demo_init(void);
 
 /*-----------------------------------------------------------*/
@@ -142,32 +145,8 @@ esp_err_t m5stickc_demo_init(void)
 
     TFT_drawLine(0, M5DISPLAY_HEIGHT - 13 - 3, M5DISPLAY_WIDTH, M5DISPLAY_HEIGHT - 13 - 3, TFT_ORANGE);
     
-    uint16_t vbat = 0, vaps = 0;
-    res = m5power_get_vbat(&vbat);
-    res |= m5power_get_vaps(&vaps);
-    if (res == ESP_OK)
-    {
-        float b = vbat * 1.1 / 1000;
-        float c = vaps * 1.4 / 1000;
-        uint8_t battery = ((b - 3.0) / 1.2) * 100;
-        char pVbatStr[9] = {0};
-
-        ESP_LOGI(TAG, "                    VBat:                   %u", vbat);
-        ESP_LOGI(TAG, "                    VAps:                   %u", vaps);
-        ESP_LOGI(TAG, "                    battery:                %u", battery);
-        ESP_LOGI(TAG, "                    c:                      %f", c);
-
-        if (c >= 4.5) {
-            snprintf( pVbatStr, 9, "CHG: %u%%", battery > 100 ? 100 : battery );
-        } else {
-            snprintf( pVbatStr, 9, "BAT: %u%%", battery > 100 ? 100 : battery );
-        }
-
-        ESP_LOGI(TAG, "                    Charging str:           %s", pVbatStr);
-        TFT_print(pVbatStr, 1, M5DISPLAY_HEIGHT - 13);
-    } else {
-        ESP_LOGI(TAG, "                    VBat/VAps ...           NOK");
-    }
+    res = draw_battery_level();
+    battery_refresh_timer_init();
 
     ESP_LOGI(TAG, "m5stickc_demo_init: ... done");
     ESP_LOGI(TAG, "======================================================");
@@ -182,7 +161,7 @@ esp_err_t m5stickc_demo_init(void)
 
 /*-----------------------------------------------------------*/
 
-static const TickType_t xSleepTimerFrequency_ms = 10000UL;
+static const TickType_t xSleepTimerFrequency_ms = 60000UL;
 static TimerHandle_t xSleepTimer;
 
 static void prvSleepTimerCallback( TimerHandle_t pxTimer )
@@ -205,6 +184,56 @@ void init_sleep_timer(void)
 void reset_sleep_timer(void)
 {
     xTimerReset( xSleepTimer, pdMS_TO_TICKS( xSleepTimerFrequency_ms ) );
+}
+
+/*-----------------------------------------------------------*/
+
+static const TickType_t xBatteryRefreshTimerFrequency_ms = 10000UL;
+static TimerHandle_t xBatteryRefresh;
+
+esp_err_t draw_battery_level(void)
+{
+    esp_err_t res = ESP_FAIL;
+    uint16_t vbat = 0, vaps = 0;
+    res = m5power_get_vbat(&vbat);
+    res |= m5power_get_vaps(&vaps);
+    if (res == ESP_OK)
+    {
+        float b = vbat * 1.1 / 1000;
+        float c = vaps * 1.4 / 1000;
+        uint8_t battery = ((b - 3.0) / 1.2) * 100;
+        char pVbatStr[9] = {0};
+
+        ESP_LOGD(TAG, "draw_battery_level: VBat:         %u", vbat);
+        ESP_LOGD(TAG, "draw_battery_level: VAps:         %u", vaps);
+        ESP_LOGD(TAG, "draw_battery_level: battery:      %u", battery);
+        ESP_LOGD(TAG, "draw_battery_level: c:            %f", c);
+
+        if (c >= 4.5)
+        {
+            snprintf(pVbatStr, 9, "CHG: %u%%", battery > 100 ? 100 : battery);
+        }
+        else
+        {
+            snprintf(pVbatStr, 9, "BAT: %u%%", battery > 100 ? 100 : battery);
+        }
+
+        ESP_LOGI(TAG, "draw_battery_level: Charging str: %s", pVbatStr);
+        TFT_print(pVbatStr, 1, M5DISPLAY_HEIGHT - 13);
+    }
+
+    return res;
+}
+
+static void prvBatteryRefreshTimerCallback(TimerHandle_t pxTimer)
+{
+    draw_battery_level();
+}
+
+void battery_refresh_timer_init(void)
+{
+    xBatteryRefresh = xTimerCreate("BatteryRefresh", pdMS_TO_TICKS(xBatteryRefreshTimerFrequency_ms), pdTRUE, NULL, prvBatteryRefreshTimerCallback);
+    xTimerStart(xBatteryRefresh, 0);
 }
 
 
