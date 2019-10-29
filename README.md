@@ -16,7 +16,7 @@ This workshop is designed to run on the M5StickC device. It includes multiple la
 There are multiple ways to run this workshop.
 
 - [Set up your Cloud9 Environment](./docs/cloud9.md)
-- Build on your laptop (documentation wip...)
+- [Build on your laptop](./docs/laptopbuild.md)
 
 
 ## Lab 0
