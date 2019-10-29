@@ -97,7 +97,7 @@ esp_err_t m5stickc_demo_init(void)
 
     m5stickc_config_t m5config;
     m5config.power.enable_lcd_backlight = false;
-    m5config.power.lcd_backlight_level = 7;
+    m5config.power.lcd_backlight_level = 1;
 
     res = m5_init(&m5config);
     ESP_LOGI(TAG, "m5stickc_demo_init: m5_init ...             %s", res == ESP_OK ? "OK" : "NOK");
