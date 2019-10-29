@@ -1,5 +1,8 @@
 /**
  * @file m5stickc_demo.h
+ *
+ * (C) 2019 - Timothee Cruse <timothee.cruse@gmail.com>
+ * This code is licensed under the MIT License.
  */
 
 #ifndef _M5STICKC_DEMO__H_

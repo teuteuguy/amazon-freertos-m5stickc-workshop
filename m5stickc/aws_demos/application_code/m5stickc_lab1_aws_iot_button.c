@@ -1,6 +1,9 @@
 /**
- * @file mystickc_demo_aws_iot_button.c
- * @brief Demonstrates usage of the MQTT library.
+ * @file m5stickc_lab1_aws_iot_button.c
+ * @brief Lab1: Demonstrates the use of the MQTT library to publish on AWS IoT Core.
+ *
+ * (C) 2019 - Timothee Cruse <timothee.cruse@gmail.com>
+ * This code is licensed under the MIT License.
  */
 
 /* Standard includes. */
@@ -20,13 +23,13 @@
 #include "types/iot_network_types.h"
 #include "esp_log.h"
 
-#include "m5stickc_demo_config.h"
-#include "m5stickc_demo_lab1_aws_iot_button.h"
+#include "m5stickc_lab_config.h"
+#include "m5stickc_lab1_aws_iot_button.h"
 
-static const char *TAG = "m5stickc_demo_lab1_aws_iot_button";
+static const char *TAG = "m5stickc_lab1_aws_iot_button";
 
 #ifndef IOT_DEMO_MQTT_TOPIC_PREFIX
-    #define IOT_DEMO_MQTT_TOPIC_PREFIX "m5stickc_demo"
+    #define IOT_DEMO_MQTT_TOPIC_PREFIX "m5stickc"
 #endif
 /** @endcond */
 
@@ -42,7 +45,7 @@ static const char *TAG = "m5stickc_demo_lab1_aws_iot_button";
  * This prefix is also used to generate topic names and topic filters used in this
  * demo.
  */
-#define CLIENT_IDENTIFIER_PREFIX                 "m5stickc_demo"
+#define CLIENT_IDENTIFIER_PREFIX                 "m5stickc"
 
 /**
  * @brief The longest client identifier that an MQTT server must accept (as defined
@@ -135,7 +138,7 @@ static const char *TAG = "m5stickc_demo_lab1_aws_iot_button";
 
 /*-----------------------------------------------------------*/
 
-int m5stickc_demo_lab1_aws_iot_button(
+int m5stickc_lab1_aws_iot_button(
     bool awsIotMqttMode, 
     const char *pIdentifier,
     void *pNetworkServerInfo, 
@@ -406,26 +409,26 @@ static int _publishMessage( IotMqttConnection_t mqttConnection,
  *
  * @return `EXIT_SUCCESS` if the demo completes successfully; `EXIT_FAILURE` otherwise.
  */
-int m5stickc_demo_lab1_aws_iot_button_single( bool awsIotMqttMode,
+int m5stickc_lab1_aws_iot_button_single( bool awsIotMqttMode,
                  const char * pIdentifier,
                  void * pNetworkServerInfo,
                  void * pNetworkCredentialInfo,
                  const IotNetworkInterface_t * pNetworkInterface)
 {
-    return m5stickc_demo_lab1_aws_iot_button(awsIotMqttMode, pIdentifier, pNetworkServerInfo, pNetworkCredentialInfo, pNetworkInterface,
+    return m5stickc_lab1_aws_iot_button(awsIotMqttMode, pIdentifier, pNetworkServerInfo, pNetworkCredentialInfo, pNetworkInterface,
         PUBLISH_PAYLOAD_FORMAT_SINGLE );
 }
-int m5stickc_demo_lab1_aws_iot_button_hold( bool awsIotMqttMode,
+int m5stickc_lab1_aws_iot_button_hold( bool awsIotMqttMode,
                  const char * pIdentifier,
                  void * pNetworkServerInfo,
                  void * pNetworkCredentialInfo,
                  const IotNetworkInterface_t * pNetworkInterface)
 {
-    return m5stickc_demo_lab1_aws_iot_button(awsIotMqttMode, pIdentifier, pNetworkServerInfo, pNetworkCredentialInfo, pNetworkInterface,
+    return m5stickc_lab1_aws_iot_button(awsIotMqttMode, pIdentifier, pNetworkServerInfo, pNetworkCredentialInfo, pNetworkInterface,
         PUBLISH_PAYLOAD_FORMAT_HOLD );
 }
 
-int m5stickc_demo_lab1_aws_iot_button(bool awsIotMqttMode,
+int m5stickc_lab1_aws_iot_button(bool awsIotMqttMode,
                  const char * pIdentifier,
                  void * pNetworkServerInfo,
                  void * pNetworkCredentialInfo,
@@ -526,12 +529,12 @@ int m5stickc_demo_lab1_aws_iot_button(bool awsIotMqttMode,
 
 /*-----------------------------------------------------------*/
 
-void m5stickc_demo_lab1_start( void ) 
+void m5stickc_lab1_start( void ) 
 {
     static demoContext_t mqttDemoContext =
         {
             .networkTypes = democonfigNETWORK_TYPES,
-            .demoFunction = m5stickc_demo_lab1_aws_iot_button_single,
+            .demoFunction = m5stickc_lab1_aws_iot_button_single,
             .networkConnectedCallback = vNetworkConnectedCallback,
             .networkDisconnectedCallback = vNetworkDisconnectedCallback
         };

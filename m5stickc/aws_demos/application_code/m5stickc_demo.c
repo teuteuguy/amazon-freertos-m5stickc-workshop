@@ -1,7 +1,11 @@
 /**
- * @file mystickc.c
- * @brief Demonstrates usage of the MQTT library.
+ * @file m5stickc_demo.c
+ * @brief Demo code to run different labs on the M5StickC.
+ *
+ * (C) 2019 - Timothee Cruse <timothee.cruse@gmail.com>
+ * This code is licensed under the MIT License.
  */
+
 /* The config header is always included first. */
 #include "iot_config.h"
 
@@ -28,7 +32,7 @@
 
 #include "m5stickc.h"
 
-#include "m5stickc_demo_config.h"
+#include "m5stickc_lab_config.h"
 #include "m5stickc_demo.h"
 
 static const char *TAG = "m5stickc_demo";
@@ -36,18 +40,18 @@ static const char *TAG = "m5stickc_demo";
 /*-----------------------------------------------------------*/
 
 /* Declaration of demo functions. */
-#ifdef M5CONFIG_DEMO_LAB1_AWS_IOT_BUTTON
-#include "m5stickc_demo_lab1_aws_iot_button.h"
-#endif // M5CONFIG_DEMO_LAB1_AWS_IOT_BUTTON
+#ifdef M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+#include "m5stickc_lab0_sleep.h"
+#endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
+#ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
+#include "m5stickc_lab1_aws_iot_button.h"
+#endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
 
 /*-----------------------------------------------------------*/
 
 uint8_t myStickCID[6] = { 0 };
 
 /*-----------------------------------------------------------*/
-
-void init_sleep_timer(void);
-void reset_sleep_timer(void);
 
 esp_err_t draw_battery_level(void);
 void battery_refresh_timer_init(void);
@@ -72,15 +76,14 @@ void m5button_event_handler(void * handler_arg, esp_event_base_t base, int32_t i
 {
     if (base == M5BUTTON_A_EVENT_BASE && id == M5BUTTON_BUTTON_CLICK_EVENT) {
         ESP_LOGI(TAG, "Button A Pressed");
+        
+        #ifdef M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+        m5stickc_lab0_start();
+        #endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
 
-        #ifdef M5CONFIG_DEMO_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
-        ESP_LOGI(TAG, "Reseting sleep timer");
-        reset_sleep_timer();
-        #endif // M5CONFIG_DEMO_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
-
-        #ifdef M5CONFIG_DEMO_LAB1_AWS_IOT_BUTTON
-        m5stickc_demo_lab1_start();        
-        #endif // M5CONFIG_DEMO_LAB1_AWS_IOT_BUTTON
+        #ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
+        m5stickc_lab1_start();        
+        #endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
     }
     if (base == M5BUTTON_B_EVENT_BASE && id == M5BUTTON_BUTTON_HOLD_EVENT) {
         ESP_LOGI(TAG, "Need to restart");
@@ -136,12 +139,12 @@ esp_err_t m5stickc_demo_init(void)
 
     TFT_print((char *)"Amazon FreeRTOS", CENTER, SCREEN_LINE_1);
     TFT_print((char *)"workshop", CENTER, SCREEN_LINE_2);
-    #ifdef M5CONFIG_DEMO_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+    #ifdef M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
     TFT_print((char *)"LAB0 - SETUP & SLEEP", CENTER, SCREEN_LINE_4);
-    #endif // M5CONFIG_DEMO_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
-    #ifdef M5CONFIG_DEMO_LAB1_AWS_IOT_BUTTON
+    #endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+    #ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
     TFT_print((char *)"LAB1 - AWS IOT BUTTON", CENTER, SCREEN_LINE_4);
-    #endif // M5CONFIG_DEMO_LAB1_AWS_IOT_BUTTON
+    #endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
 
     TFT_drawLine(0, M5DISPLAY_HEIGHT - 13 - 3, M5DISPLAY_WIDTH, M5DISPLAY_HEIGHT - 13 - 3, TFT_ORANGE);
     
@@ -151,39 +154,11 @@ esp_err_t m5stickc_demo_init(void)
     ESP_LOGI(TAG, "m5stickc_demo_init: ... done");
     ESP_LOGI(TAG, "======================================================");
 
-    #ifdef M5CONFIG_DEMO_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
-    esp_sleep_enable_ext0_wakeup(M5BUTTON_BUTTON_A_GPIO, 0);
-    init_sleep_timer();
-    #endif // M5CONFIG_DEMO_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+    #ifdef M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+    m5stickc_lab0_init();
+    #endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
 
     return res;
-}
-
-/*-----------------------------------------------------------*/
-
-static const TickType_t xSleepTimerFrequency_ms = 60000UL;
-static TimerHandle_t xSleepTimer;
-
-static void prvSleepTimerCallback( TimerHandle_t pxTimer )
-{    
-    // m5led_toggle();
-    esp_err_t res = ESP_FAIL;
-    res = m5power_set_sleep();
-    if (res == ESP_OK)
-    {
-        esp_deep_sleep_start();
-    }
-}
-
-void init_sleep_timer(void)
-{
-    xSleepTimer = xTimerCreate( "SleepTimer", pdMS_TO_TICKS( xSleepTimerFrequency_ms ), pdFALSE, NULL, prvSleepTimerCallback );
-	xTimerStart( xSleepTimer, 0 );
-}
-
-void reset_sleep_timer(void)
-{
-    xTimerReset( xSleepTimer, pdMS_TO_TICKS( xSleepTimerFrequency_ms ) );
 }
 
 /*-----------------------------------------------------------*/
