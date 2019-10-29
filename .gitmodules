@@ -1,7 +1,9 @@
 [submodule "m5stickc/aws_demos/application_code/components/m5stickc-idf"]
 	path = m5stickc/aws_demos/application_code/components/m5stickc-idf
 	url = https://github.com/teuteuguy/m5stickc-idf
+	fetchRecurseSubmodules = true
 [submodule "amazon-freertos"]
 	path = amazon-freertos
 	url = https://github.com/aws/amazon-freertos
+	fetchRecurseSubmodules = true
 	ignore = dirty
