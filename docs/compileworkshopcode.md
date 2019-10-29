@@ -45,7 +45,7 @@ Open the aws\_clientcredential.h file by double-clicking on it. And change the f
 ## Setup the code
 
 ```bash
-cp -R ~/environment/workshop/m5stickc ~/environment/workshop/amazon-freertos/vendors/espressif/boards
+mv ~/environment/workshop/m5stickc ~/environment/workshop/amazon-freertos/vendors/espressif/boards
 ```
 
 ## Configure the code
