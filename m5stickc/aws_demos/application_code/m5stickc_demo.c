@@ -21,9 +21,6 @@
 #include "platform/iot_clock.h"
 #include "platform/iot_threads.h"
 
-/* MQTT include. */
-#include "iot_mqtt.h"
-
 #include "aws_demo.h"
 #include "types/iot_network_types.h"
 #include "semphr.h"
@@ -46,6 +43,9 @@ static const char *TAG = "m5stickc_demo";
 #ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
 #include "m5stickc_lab1_aws_iot_button.h"
 #endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
+#ifdef M5CONFIG_LAB2_SHADOW
+#include "m5stickc_lab2_shadow.h"
+#endif // M5CONFIG_LAB2_SHADOW
 
 /*-----------------------------------------------------------*/
 
@@ -86,7 +86,9 @@ void m5button_event_handler(void * handler_arg, esp_event_base_t base, int32_t i
         #endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
     }
     if (base == M5BUTTON_B_EVENT_BASE && id == M5BUTTON_BUTTON_HOLD_EVENT) {
-        ESP_LOGI(TAG, "Need to restart");
+        ESP_LOGI(TAG, "Button B Held");
+
+        ESP_LOGI(TAG, "Restarting");
         esp_restart();
     }
 }
@@ -97,6 +99,8 @@ esp_err_t m5stickc_demo_init(void)
 
     ESP_LOGI(TAG, "======================================================");
     ESP_LOGI(TAG, "m5stickc_demo_init: ...");
+    ESP_LOGI(TAG, "m5stickc_demo_init: democonfigDEMO_STACKSIZE: %u", democonfigDEMO_STACKSIZE);
+    ESP_LOGI(TAG, "m5stickc_demo_init: democonfigDEMO_PRIORITY:  %u", democonfigDEMO_PRIORITY);
 
     m5stickc_config_t m5config;
     m5config.power.enable_lcd_backlight = false;
@@ -139,12 +143,15 @@ esp_err_t m5stickc_demo_init(void)
 
     TFT_print((char *)"Amazon FreeRTOS", CENTER, SCREEN_LINE_1);
     TFT_print((char *)"workshop", CENTER, SCREEN_LINE_2);
-    #ifdef M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+#ifdef M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
     TFT_print((char *)"LAB0 - SETUP & SLEEP", CENTER, SCREEN_LINE_4);
-    #endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
-    #ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
+#endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+#ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
     TFT_print((char *)"LAB1 - AWS IOT BUTTON", CENTER, SCREEN_LINE_4);
-    #endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
+#endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
+#ifdef M5CONFIG_LAB2_SHADOW
+    TFT_print((char *)"LAB2 - THING SHADOW", CENTER, SCREEN_LINE_4);
+#endif // M5CONFIG_LAB2_SHADOW
 
     TFT_drawLine(0, M5DISPLAY_HEIGHT - 13 - 3, M5DISPLAY_WIDTH, M5DISPLAY_HEIGHT - 13 - 3, TFT_ORANGE);
     
@@ -158,6 +165,10 @@ esp_err_t m5stickc_demo_init(void)
     m5stickc_lab0_init();
     #endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
 
+    #ifdef M5CONFIG_LAB2_SHADOW
+    m5stickc_lab2_start();
+    #endif // M5CONFIG_LAB2_SHADOW
+
     return res;
 }
 
@@ -169,32 +180,46 @@ static TimerHandle_t xBatteryRefresh;
 esp_err_t draw_battery_level(void)
 {
     esp_err_t res = ESP_FAIL;
-    uint16_t vbat = 0, vaps = 0;
+    int status = EXIT_SUCCESS;
+    uint16_t vbat = 0, vaps = 0, b, c, battery;
+    char pVbatStr[11] = {0};
+
     res = m5power_get_vbat(&vbat);
     res |= m5power_get_vaps(&vaps);
+
     if (res == ESP_OK)
     {
-        float b = vbat * 1.1 / 1000;
-        float c = vaps * 1.4 / 1000;
-        uint8_t battery = ((b - 3.0) / 1.2) * 100;
-        char pVbatStr[9] = {0};
-
         ESP_LOGD(TAG, "draw_battery_level: VBat:         %u", vbat);
         ESP_LOGD(TAG, "draw_battery_level: VAps:         %u", vaps);
+        b = (vbat * 1.1);
+        ESP_LOGD(TAG, "draw_battery_level: b:            %u", b);
+        c = (vaps * 1.4);
+        ESP_LOGD(TAG, "draw_battery_level: c:            %u", c);
+        battery = ((b - 3000)) / 12;
         ESP_LOGD(TAG, "draw_battery_level: battery:      %u", battery);
-        ESP_LOGD(TAG, "draw_battery_level: c:            %f", c);
 
-        if (c >= 4.5)
+        if (battery >= 100)
         {
-            snprintf(pVbatStr, 9, "CHG: %u%%", battery > 100 ? 100 : battery);
+            battery = 99; // No need to support 100% :)
+        }
+
+        if (c >= 4500) //4.5)
+        {
+            status = snprintf(pVbatStr, 11, "CHG: %02u%%", battery);
         }
         else
         {
-            snprintf(pVbatStr, 9, "BAT: %u%%", battery > 100 ? 100 : battery);
+            status = snprintf(pVbatStr, 11, "BAT: %02u%%", battery);
         }
 
-        ESP_LOGI(TAG, "draw_battery_level: Charging str: %s", pVbatStr);
-        TFT_print(pVbatStr, 1, M5DISPLAY_HEIGHT - 13);
+        if (status < 0) {
+            ESP_LOGE(TAG, "draw_battery_level: error with creating battery string");
+        }
+        else
+        {
+            ESP_LOGD(TAG, "draw_battery_level: Charging str(%i): %s", status, pVbatStr);
+            TFT_print(pVbatStr, 1, M5DISPLAY_HEIGHT - 13);
+        }
     }
 
     return res;
@@ -202,7 +227,7 @@ esp_err_t draw_battery_level(void)
 
 static void prvBatteryRefreshTimerCallback(TimerHandle_t pxTimer)
 {
-    draw_battery_level();
+    draw_battery_level();    
 }
 
 void battery_refresh_timer_init(void)

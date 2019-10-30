@@ -15,6 +15,7 @@
  *
  *          M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
  *          M5CONFIG_LAB1_AWS_IOT_BUTTON
+ *          M5CONFIG_LAB2_SHADOW
  *
  *  These defines are used in iot_demo_runner.h for demo selection */
 
