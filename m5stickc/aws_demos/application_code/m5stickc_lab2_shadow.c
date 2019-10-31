@@ -791,8 +791,9 @@ static void prvAirConTimerCallback(TimerHandle_t pxTimer)
             if (shadowStateReported.temperature > 40)
             {
                 shadowStateReported.temperature = 40;
-                change = true;
             }
+
+            change = true;
 
             IotLogInfo("Timer: AirCon is OFF => Temp (%u) increases", shadowStateReported.temperature);
 
