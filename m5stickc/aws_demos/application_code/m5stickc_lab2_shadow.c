@@ -134,12 +134,15 @@ void vNetworkConnectedCallback(bool awsIotMqttMode,
                                void *pNetworkCredentialInfo,
                                const IotNetworkInterface_t *pNetworkInterface)
 {
-    IotLogInfo("Network connected.");
+    ESP_LOGI(TAG, "Network connected.");
 }
 
+static bool lostConnection = false;
 void vNetworkDisconnectedCallback(const IotNetworkInterface_t *pNetworkInterface)
 {
-    IotLogInfo("Network disconnected.");
+    ESP_LOGI(TAG, "Network disconnected.");
+
+    lostConnection = true;
 }
 
 /*-----------------------------------------------------------*/
@@ -474,6 +477,13 @@ static int _reportShadow(IotSemaphore_t *pDeltaSemaphore,
     {
         IotLogError("Failed to send Shadow update, error %s.", AwsIotShadow_strerror(updateStatus));
         status = EXIT_FAILURE;
+
+        if (updateStatus == AWS_IOT_SHADOW_MQTT_ERROR)
+        {
+            /* connection could have died. Lets kill it. */
+            lostConnection = true;
+        }
+
         return status;
     }
     else
@@ -559,15 +569,15 @@ static void _shadowDeltaCallback(void *pCallbackContext,
     {
         IotLogInfo("Shadow delta: change of Power State requires updating shadow");
 
-        // status = _reportShadow(pDeltaSemaphore,
-        //                        pCallbackParam->mqttConnection,
-        //                        pCallbackParam->pThingName,
-        //                        pCallbackParam->thingNameLength);
+        status = _reportShadow(pDeltaSemaphore,
+                               pCallbackParam->mqttConnection,
+                               pCallbackParam->pThingName,
+                               pCallbackParam->thingNameLength);
 
-        // if (status != EXIT_SUCCESS)
-        // {
-        //     IotLogError("Shadow delta: report new shadow failed\n");
-        // }
+        if (status != EXIT_SUCCESS)
+        {
+            IotLogError("Shadow delta: report new shadow failed\n");
+        }
     }
 
 }
@@ -748,52 +758,63 @@ typedef struct {
 
 static void prvAirConTimerCallback(TimerHandle_t pxTimer)
 {
-    int status = EXIT_SUCCESS;
-    configASSERT(pxTimer);
-
-    timerId_t * myTimerId = (timerId_t *)pvTimerGetTimerID(pxTimer);
-
-    char pAirConStr[11] = {0};
-
-    if (shadowStateReported.powerOn == 1)
+    if (lostConnection == false)
     {
-        IotLogInfo("Timer: AirCon is ON => Temp (%u) needs to decrease to target (%u)",
-                   shadowStateReported.temperature,
-                   shadowStateDesired.temperature);
-        if (shadowStateReported.temperature > shadowStateDesired.temperature)
+        int status = EXIT_SUCCESS;
+        configASSERT(pxTimer);
+
+        timerId_t * myTimerId = (timerId_t *)pvTimerGetTimerID(pxTimer);
+
+        char pAirConStr[11] = {0};
+        bool change = false;
+
+        if (shadowStateReported.powerOn == 1 && 
+            shadowStateReported.temperature != shadowStateDesired.temperature)
         {
-            shadowStateReported.temperature--;            
+            if (shadowStateReported.temperature > shadowStateDesired.temperature)
+            {
+                shadowStateReported.temperature--;
+                change = true;
+            }
+
+            IotLogInfo("Timer: AirCon is ON => Temp (%u) needs to decrease to target (%u)",
+                    shadowStateReported.temperature,
+                    shadowStateDesired.temperature);
+
+            status = snprintf(pAirConStr, 11, " ON %02u", shadowStateReported.temperature);
+        }
+        
+        if (shadowStateReported.powerOn == 0 &&
+            shadowStateReported.temperature != 40)
+        {
+            shadowStateReported.temperature++;
+            if (shadowStateReported.temperature > 40)
+            {
+                shadowStateReported.temperature = 40;
+                change = true;
+            }
+
+            IotLogInfo("Timer: AirCon is OFF => Temp (%u) increases", shadowStateReported.temperature);
+
+            status = snprintf(pAirConStr, 11, "OFF %02u", shadowStateReported.temperature);
         }
 
-        status = snprintf(pAirConStr, 11, "ON  %02u°", shadowStateReported.temperature);
-    }
-    else
-    {
-        IotLogInfo("Timer: AirCon is OFF => Temp (%u) increases", shadowStateReported.temperature);
-        shadowStateReported.temperature++;
-        if (shadowStateReported.temperature > 40)
+        if (status >= 0)
         {
-            shadowStateReported.temperature = 40;
-        }
+            TFT_print(pAirConStr, M5DISPLAY_WIDTH - 6 * 9, M5DISPLAY_HEIGHT - 13);
 
-        status = snprintf(pAirConStr, 11, "OFF %02u", shadowStateReported.temperature);
-    }
+            /* Report Shadow. */
+            status = _reportShadow(myTimerId->pSemaphore,
+                                myTimerId->mqttConnection,
+                                myTimerId->pThingName,
+                                myTimerId->thingNameLength);
 
-    if (status >= 0)
-    {
-        TFT_print(pAirConStr, M5DISPLAY_WIDTH - 6 * 8, M5DISPLAY_HEIGHT - 13);
-
-        /* Report Shadow. */
-        status = _reportShadow(myTimerId->pSemaphore,
-                               myTimerId->mqttConnection,
-                               myTimerId->pThingName,
-                               myTimerId->thingNameLength);
-        if (status != EXIT_SUCCESS)
-        {
-            IotLogError("Timer: Failed to report shadow.\n");
+            if (status != EXIT_SUCCESS)
+            {
+                IotLogError("Timer: Failed to report shadow.");
+            }
         }
     }
-
 }
 
 /*-----------------------------------------------------------*/
@@ -830,104 +851,139 @@ int m5stickc_lab_shadow_run(bool awsIotMqttMode,
      * a state change before continuing. */
     IotSemaphore_t deltaSemaphore;
 
-    /* Flags for tracking which cleanup functions must be called. */
-    bool librariesInitialized = false, connectionEstablished = false, deltaSemaphoreCreated = false;
-
-    /* The first parameter of this demo function is not used. Shadows are specific
-     * to AWS IoT, so this value is hardcoded to true whenever needed. */
-    (void)awsIotMqttMode;
-
-    /* Determine the length of the Thing Name. */
-    if (pIdentifier != NULL)
-    {
-        thingNameLength = strlen(pIdentifier);
-
-        if (thingNameLength == 0)
-        {
-            IotLogError("The length of the Thing Name (identifier) must be nonzero.");
-
-            status = EXIT_FAILURE;
-        }
-    }
-    else
-    {
-        IotLogError("A Thing Name (identifier) must be provided for the Shadow demo.");
-
-        status = EXIT_FAILURE;
-    }
-
-    /* Initialize the libraries required for this demo. */
-    if (status == EXIT_SUCCESS)
-    {
-        status = _initializeDemo();
-    }
-
-    if (status == EXIT_SUCCESS)
-    {
-        /* Mark the libraries as initialized. */
-        librariesInitialized = true;
-
-        /* Establish a new MQTT connection. */
-        status = _establishMqttConnection(pIdentifier,
-                                          pNetworkServerInfo,
-                                          pNetworkCredentialInfo,
-                                          pNetworkInterface,
-                                          &mqttConnection);
-    }
-
-    if (status == EXIT_SUCCESS)
-    {
-        /* Mark the MQTT connection as established. */
-        connectionEstablished = true;
-
-        /* Create the semaphore that synchronizes with the delta callback. */
-        deltaSemaphoreCreated = IotSemaphore_Create(&deltaSemaphore, 0, 1);
-
-        if (deltaSemaphoreCreated == false)
-        {
-            status = EXIT_FAILURE;
-        }
-    }
-
-    if (status == EXIT_SUCCESS)
-    {
-        /* Init the Semaphore to release it */
-        IotSemaphore_Post(&deltaSemaphore);
-
-        timerId_t myTimerId = {
-            .pSemaphore = &deltaSemaphore,
-            .mqttConnection = mqttConnection,
-            .pThingName = pIdentifier,
-            .thingNameLength = thingNameLength};
-
-        /* Start the AirCon */
-        xAirCon = xTimerCreate("AirConRefresh", pdMS_TO_TICKS(xAirConRefreshTimerFrequency_ms), pdTRUE, (void *)&myTimerId, prvAirConTimerCallback);
-        xTimerStart(xAirCon, 0);
-    }
-
-    if (status == EXIT_SUCCESS)
-    {
-        IotLogInfo("Init, MQTT and Semaphore done. Setting up callbacks.");
-
-        /* Set the Shadow callbacks for this demo. */
-        status = _setShadowCallbacks(&deltaSemaphore,
-                                     mqttConnection,
-                                     pIdentifier,
-                                     thingNameLength);
-    }
-
-    if (status == EXIT_SUCCESS)
-    {
-        /* Report Shadow. */
-        status = _reportShadow(&deltaSemaphore, 
-                               mqttConnection,
-                               pIdentifier,
-                               thingNameLength);
-    }
-
     for(;;)
     {
-        vTaskDelay( pdMS_TO_TICKS(5000) );
+
+        /* Flags for tracking which cleanup functions must be called. */
+        bool librariesInitialized = false, connectionEstablished = false, deltaSemaphoreCreated = false;
+
+        /* The first parameter of this demo function is not used. Shadows are specific
+         * to AWS IoT, so this value is hardcoded to true whenever needed. */
+        (void)awsIotMqttMode;
+
+        /* Determine the length of the Thing Name. */
+        if (pIdentifier != NULL)
+        {
+            thingNameLength = strlen(pIdentifier);
+
+            if (thingNameLength == 0)
+            {
+                IotLogError("The length of the Thing Name (identifier) must be nonzero.");
+
+                status = EXIT_FAILURE;
+            }
+        }
+        else
+        {
+            IotLogError("A Thing Name (identifier) must be provided for the Shadow demo.");
+
+            status = EXIT_FAILURE;
+        }
+
+        /* Initialize the libraries required for this demo. */
+        if (status == EXIT_SUCCESS)
+        {
+            status = _initializeDemo();
+        }
+
+        if (status == EXIT_SUCCESS)
+        {
+            /* Mark the libraries as initialized. */
+            librariesInitialized = true;
+
+            /* Establish a new MQTT connection. */
+            status = _establishMqttConnection(pIdentifier,
+                                            pNetworkServerInfo,
+                                            pNetworkCredentialInfo,
+                                            pNetworkInterface,
+                                            &mqttConnection);
+        }
+
+        if (status == EXIT_SUCCESS)
+        {
+            /* Mark the MQTT connection as established. */
+            connectionEstablished = true;
+
+            /* Mark the connection as NOT lost. */
+            lostConnection = false;
+
+            /* Create the semaphore that synchronizes with the delta callback. */
+            deltaSemaphoreCreated = IotSemaphore_Create(&deltaSemaphore, 0, 1);
+
+            if (deltaSemaphoreCreated == false)
+            {
+                status = EXIT_FAILURE;
+            }
+        }
+
+        if (status == EXIT_SUCCESS)
+        {
+            /* Init the Semaphore to release it */
+            IotSemaphore_Post(&deltaSemaphore);
+
+            timerId_t myTimerId = {
+                .pSemaphore = &deltaSemaphore,
+                .mqttConnection = mqttConnection,
+                .pThingName = pIdentifier,
+                .thingNameLength = thingNameLength};
+
+            /* Start the AirCon */
+            xAirCon = xTimerCreate("AirConRefresh", pdMS_TO_TICKS(xAirConRefreshTimerFrequency_ms), pdTRUE, (void *)&myTimerId, prvAirConTimerCallback);
+            xTimerStart(xAirCon, 0);
+        }
+
+        if (status == EXIT_SUCCESS)
+        {
+            IotLogInfo("Init, MQTT and Semaphore done. Setting up callbacks.");
+
+            /* Set the Shadow callbacks for this demo. */
+            status = _setShadowCallbacks(&deltaSemaphore,
+                                        mqttConnection,
+                                        pIdentifier,
+                                        thingNameLength);
+        }
+
+        if (status == EXIT_SUCCESS)
+        {
+            /* Report Shadow. */
+            status = _reportShadow(&deltaSemaphore, 
+                                mqttConnection,
+                                pIdentifier,
+                                thingNameLength);
+        }
+
+        while (lostConnection == false)
+        {
+            vTaskDelay( pdMS_TO_TICKS(5000) );
+
+            // Have we lost connection ?
+            if (lostConnection == true)
+            {
+                break;
+            }
+        }
+
+        ESP_LOGE(TAG, "Lost Connection.");
+
+        /* Disconnect the MQTT connection if it was established. */
+        if (connectionEstablished == true)
+        {
+            IotMqtt_Disconnect(mqttConnection, 0);
+        }
+
+        /* Clean up libraries if they were initialized. */
+        if (librariesInitialized == true)
+        {
+            _cleanupDemo();
+        }
+
+        /* Destroy the delta semaphore if it was created. */
+        if (deltaSemaphoreCreated == true)
+        {
+            IotSemaphore_Destroy(&deltaSemaphore);
+        }
+
+        // vTaskDelay(pdMS_TO_TICKS(5000));
     }
 
     return status;
