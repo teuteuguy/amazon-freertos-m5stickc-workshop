@@ -799,7 +799,7 @@ static void prvAirConTimerCallback(TimerHandle_t pxTimer)
             status = snprintf(pAirConStr, 11, "OFF %02u", shadowStateReported.temperature);
         }
 
-        if (status >= 0)
+        if (status >= 0 && change == true)
         {
             TFT_print(pAirConStr, M5DISPLAY_WIDTH - 6 * 9, M5DISPLAY_HEIGHT - 13);
 
