@@ -899,6 +899,10 @@ int m5stickc_lab_shadow_run(bool awsIotMqttMode,
                                             pNetworkInterface,
                                             &mqttConnection);
         }
+        else
+        {
+            ESP_LOGE(TAG, "Failed to initialize Demo: %i", status);
+        }
 
         if (status == EXIT_SUCCESS)
         {
@@ -916,6 +920,11 @@ int m5stickc_lab_shadow_run(bool awsIotMqttMode,
                 status = EXIT_FAILURE;
             }
         }
+        else
+        {
+            ESP_LOGE(TAG, "Failed to initialize the MQTT Connection: %i", status);
+        }
+        
 
         if (status == EXIT_SUCCESS)
         {
@@ -932,6 +941,10 @@ int m5stickc_lab_shadow_run(bool awsIotMqttMode,
             xAirCon = xTimerCreate("AirConRefresh", pdMS_TO_TICKS(xAirConRefreshTimerFrequency_ms), pdTRUE, (void *)&myTimerId, prvAirConTimerCallback);
             xTimerStart(xAirCon, 0);
         }
+        else
+        {
+            ESP_LOGE(TAG, "Failed to initialize the Delta Semaphore: %i", status);
+        }
 
         if (status == EXIT_SUCCESS)
         {
@@ -943,6 +956,10 @@ int m5stickc_lab_shadow_run(bool awsIotMqttMode,
                                         pIdentifier,
                                         thingNameLength);
         }
+        else
+        {
+            ESP_LOGE(TAG, "Failed to set the shadow callbacks: %i", status);
+        }
 
         if (status == EXIT_SUCCESS)
         {
@@ -951,6 +968,10 @@ int m5stickc_lab_shadow_run(bool awsIotMqttMode,
                                 mqttConnection,
                                 pIdentifier,
                                 thingNameLength);
+        }
+        else
+        {
+            ESP_LOGE(TAG, "Failed to report the shadow: %i", status);
         }
 
         while (lostConnection == false)
@@ -965,6 +986,7 @@ int m5stickc_lab_shadow_run(bool awsIotMqttMode,
         }
 
         ESP_LOGE(TAG, "Lost Connection.");
+        ESP_LOGE(TAG, "Params: %01d, %01d, %01d", connectionEstablished, librariesInitialized, deltaSemaphoreCreated);
 
         /* Disconnect the MQTT connection if it was established. */
         if (connectionEstablished == true)
@@ -984,7 +1006,7 @@ int m5stickc_lab_shadow_run(bool awsIotMqttMode,
             IotSemaphore_Destroy(&deltaSemaphore);
         }
 
-        // vTaskDelay(pdMS_TO_TICKS(5000));
+        vTaskDelay(pdMS_TO_TICKS(5000));
     }
 
     return status;
