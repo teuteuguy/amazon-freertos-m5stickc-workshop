@@ -20,7 +20,7 @@ There are multiple ways to run this workshop.
 - [Build on your laptop](./docs/laptopbuild.md)
 
 
-## Lab 0
+## Lab 0 - Deep Sleep
 
 If you've followed the Setup guide, you should have nothing to do. The code first compiles to Lab 0
 
