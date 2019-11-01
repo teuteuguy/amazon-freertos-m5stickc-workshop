@@ -16,8 +16,8 @@ This workshop is designed to run on the M5StickC device. It includes multiple la
 
 There are multiple ways to run this workshop.
 
-- [Set up your Cloud9 Environment](./docs/cloud9.md)
-- [Build on your laptop](./docs/laptopbuild.md)
+- [Set up your Cloud9 Environment](./docs/markdown/cloud9.md)
+- [Build on your laptop](./docs/markdown/laptopbuild.md)
 
 
 ## Lab 0 - Deep Sleep
@@ -35,7 +35,7 @@ A couple years ago, AWS announced the AWS IoT Button you could order from Amazon
 
 For this lab, our M5StickC will act as an AWS IoT Button, allowing you to trigger downstream AWS Services.
 
-### [Goto Lab 1](./docs/lab1.md)
+### [Goto Lab 1](./docs/markdown/lab1.md)
 
 ## Lab 2 - Interract with the Thing Shadow
 
@@ -49,7 +49,7 @@ You can turn the AirCon ON or OFF remotely as well as set a target temperature.
 * If the AirCon is OFF, the temperature will rise to a stable 40 deg celcius.
 * If the AirCon is ON, the temperature will decrease to reach your chosen temperature
 
-### [Goto Lab 2](./docs/lab2.md)
+### [Goto Lab 2](./docs/markdown/lab2.md)
 
 
 # Disclaimer
