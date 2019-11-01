@@ -14,7 +14,7 @@ favicon: ./assets/favicon.ico
 
 author: teuteuguy
 
-destination: ../docs
+# destination: ../docs
 
 # show_downloads: true
 
