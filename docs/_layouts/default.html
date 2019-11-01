@@ -28,7 +28,7 @@
       <ul class="content-menu">
         {% for p in site.posts reversed %}
         <li>
-          <a href="{{ p.name }}">{{ p.title }}</a>
+          <a href="{{ p.name | absolute_url}}">{{ p.title }}</a>
         </li>
         {% endfor %}
       </ul>
