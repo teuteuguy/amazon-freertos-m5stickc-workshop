@@ -1,1 +1,11 @@
 theme: jekyll-theme-minimal
+
+language: english
+
+title: Amazon FreeRTOS workshop on M5StickC
+
+description: Workshop content for running Amazon FreeRTOS on the M5StickC
+
+logo: https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/1280px-Amazon_Web_Services_Logo.svg.png
+
+favicon: page/assets/favicon.ico
