@@ -1,4 +1,5 @@
 ---
+layout: default
 layout: post
 title:  "Lab 2 - Interract with the Thing"
 categories: [lab]

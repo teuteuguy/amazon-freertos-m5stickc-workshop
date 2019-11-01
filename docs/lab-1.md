@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: default
 title:  "Lab 1 - Create your own AWS IoT Button"
 categories: [lab]
 tags: [iot-core]

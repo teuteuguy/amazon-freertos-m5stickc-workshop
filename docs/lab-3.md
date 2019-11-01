@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: default
 title:  "Lab 3 - Alexa"
 categories: [lab]
 tags: [iot-core, shadow, alexa]

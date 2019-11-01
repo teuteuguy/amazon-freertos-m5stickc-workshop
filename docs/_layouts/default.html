@@ -26,9 +26,9 @@
       <p>{{ site.description | default: site.github.project_tagline }}</p>
 
       <ul class="content-menu">
-        {% for post in site.posts reversed %}
+        {% for page in site.pages %}
         <li>
-          <a href="{{ post.url }}">{{ post.title }}</a>
+          <a href="{{ page.url }}">{{ page.title }}</a>
         </li>
         {% endfor %}
       </ul>

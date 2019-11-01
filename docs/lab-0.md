@@ -1,9 +1,8 @@
 ---
-layout: post
+layout: default
 title:  "Lab 0 - Setup"
 categories: [lab]
 tags: [setup]
-name: 2019-11-01-lab-0
 excerpt_separator: <!--more-->
 ---
 
