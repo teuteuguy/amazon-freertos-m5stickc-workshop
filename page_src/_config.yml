@@ -14,4 +14,8 @@ favicon: ./assets/favicon.ico
 
 author: teuteuguy
 
+destination: ../docs
+
 # show_downloads: true
+
+# run jekyll with: bundle exec jekyll serve

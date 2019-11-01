@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>Build the code on your laptop | Amazon FreeRTOS Workshop</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Build the code on your laptop" />
+<meta name="author" content="teuteuguy" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Amazon Freertos workshop using the M5 StickC" />
+<meta property="og:description" content="Amazon Freertos workshop using the M5 StickC" />
+<link rel="canonical" href="http://localhost:4200/setup/laptopbuild.html" />
+<meta property="og:url" content="http://localhost:4200/setup/laptopbuild.html" />
+<meta property="og:site_name" content="Amazon FreeRTOS Workshop" />
+<script type="application/ld+json">
+{"description":"Amazon Freertos workshop using the M5 StickC","publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/1280px-Amazon_Web_Services_Logo.svg.png"},"name":"teuteuguy"},"@type":"WebPage","headline":"Build the code on your laptop","url":"http://localhost:4200/setup/laptopbuild.html","author":{"@type":"Person","name":"teuteuguy"},"@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/assets/css/style.css?v=e9b439637ae65e011d9f7e9bab5bec5c827ff7b2">
+    <!--[if lt IE 9]>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 style="font-size: 18px;"><a href="http://localhost:4200/">Amazon FreeRTOS Workshop</a></h1>
+        
+        
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/1280px-Amazon_Web_Services_Logo.svg.png" alt="Logo" />
+        
+
+        <p>Amazon Freertos workshop using the M5 StickC</p>
+
+        <ul class="content-menu">
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-0.html">Lab 0 - Setup</a>
+          </li>
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-1.html">Lab 1 - Create your own AWS IoT Button</a>
+          </li>
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-2.html">Lab 2 - Interract with the Thing</a>
+          </li>
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-3.html">Lab 3 - Alexa</a>
+          </li>
+          
+        </ul>
+
+        
+        <p class="view"><a href="https://github.com/teuteuguy/amazon-freertos-m5stickc-workshop">View the Project on GitHub <small>teuteuguy/amazon-freertos-m5stickc-workshop</small></a></p>
+        
+
+        
+
+        
+      </header>
+      <section>
+
+      <h1 id="build-the-code-on-your-laptop">Build the code on your laptop</h1>
+
+<h2 id="clone-the-repository">Clone the repository</h2>
+
+<p>Main code can be found on the repository page: 
+<a href="https://github.com/teuteuguy/amazon-freertos-m5stickc-workshop">github.com/teuteuguy/amazon-freertos-m5stickc-workshop</a></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/teuteuguy/amazon-freertos-m5stickc-workshop.git <span class="nt">--recurse-submodules</span> workshop
+</code></pre></div></div>
+
+<blockquote>
+  <p>Note: from now on, we’ll assume your bash is in the workshop folder</p>
+</blockquote>
+
+<h2 id="setup-your-credentials">Setup your credentials</h2>
+
+<h3 id="create-the-aws_clientcredential_keysh">Create the aws_clientcredential_keys.h</h3>
+
+<p>Navigate to <a href="https://yona75.github.io/credformatter/">https://yona75.github.io/credformatter/</a>, upload your Certificate and Private key that you downloaded in the <a href="./iotcoresetup.html">previous</a> step and generate an aws_clientcredential_keys.h file.</p>
+
+<h3 id="copy-aws_clientcredential_keysh-to-project">Copy aws_clientcredential_keys.h to project</h3>
+
+<p>Copy the file to ./amazon-freertos/demos/include/ directory by dragging it there</p>
+
+<h3 id="edit-aws_clientcredentialh">Edit aws_clientcredential.h</h3>
+
+<p>Open the aws_clientcredential.h file by double-clicking on it. And change the following values:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>...
+<span class="c">#define clientcredentialMQTT_BROKER_ENDPOINT "[YOUR AWS IOT ENDPOINT]"</span>
+...
+<span class="c">#define clientcredentialIOT_THING_NAME       "[THE THING NAME YOU CREATED]"</span>
+...
+<span class="c">#define clientcredentialWIFI_SSID            "[YOUR WIFI SSID]"</span>
+...
+<span class="c">#define clientcredentialWIFI_PASSWORD        "[YOUR WIFI PASSOWRD]"</span>
+...
+<span class="c">#define clientcredentialWIFI_SECURITY        eWiFiSecurityWPA2</span>
+...
+</code></pre></div></div>
+
+<blockquote>
+  <p>Note: clientcredentialWIFI_SECURITY is defined without double quotes</p>
+</blockquote>
+
+<h2 id="setup-the-code">Setup the code</h2>
+
+<p>As of now, we move the code to the amazon-freertos folder structure to maintain most of the dependencies.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mv</span> ./m5stickc ./amazon-freertos/vendors/espressif/boards
+</code></pre></div></div>
+
+<blockquote>
+  <p>Note: TODO: see how to leverage cmake in order NOT to have to do this</p>
+</blockquote>
+
+<h2 id="connect-your-board-to-your-laptop">Connect your board to your laptop</h2>
+
+<p>Find the USB device</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">ls</span> /dev/cu.<span class="k">*</span>
+</code></pre></div></div>
+
+<p>Should return something like: /dev/cu.usbserial-29568143B4</p>
+
+<p>Make a note of the “/dev/cu.usbserial-29568143B4” (copy)</p>
+
+<h2 id="configure-the-code">Configure the code</h2>
+
+<p>Run make menuconfig and configure the serial port.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cd</span> ./amazon-freertos/vendors/espressif/boards/m5stickc/aws_demos
+
+make menuconfig
+</code></pre></div></div>
+
+<ul>
+  <li>Select “Serial flasher config”</li>
+  <li>Set the serial port to: [YOUR /dev/cu….]</li>
+  <li><em>Save</em> and then <em>Exit</em></li>
+</ul>
+
+<p><img src="/assets/images/cdd-make-menuconfig.png" alt="make menuconfig" /></p>
+
+<h2 id="compile-flash-and-monitor-the-code">Compile, flash and monitor the code</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make all <span class="nt">-j4</span> <span class="o">&amp;&amp;</span> make flash <span class="o">&amp;&amp;</span> screen /dev/cu.... 115200 <span class="nt">-L</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Note: replace /dev/cu…. by your specific serial port</p>
+</blockquote>
+
+
+      </section>
+      <footer>
+        
+        <p>This project is maintained by <a href="https://github.com/teuteuguy">teuteuguy</a></p>
+        
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="/assets/js/scale.fix.js"></script>
+    
+  </body>
+</html>

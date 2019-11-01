@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>Lab 3 - Alexa | Amazon FreeRTOS Workshop</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Lab 3 - Alexa" />
+<meta name="author" content="teuteuguy" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Wouldn’t it be great if you could control your Air Conditioning unit with your voice? No need to search for the remote anymore!" />
+<meta property="og:description" content="Wouldn’t it be great if you could control your Air Conditioning unit with your voice? No need to search for the remote anymore!" />
+<link rel="canonical" href="http://localhost:4200/lab/2019/11/01/lab-3.html" />
+<meta property="og:url" content="http://localhost:4200/lab/2019/11/01/lab-3.html" />
+<meta property="og:site_name" content="Amazon FreeRTOS Workshop" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-11-01T00:00:00+08:00" />
+<script type="application/ld+json">
+{"description":"Wouldn’t it be great if you could control your Air Conditioning unit with your voice? No need to search for the remote anymore!","publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/1280px-Amazon_Web_Services_Logo.svg.png"},"name":"teuteuguy"},"@type":"BlogPosting","headline":"Lab 3 - Alexa","dateModified":"2019-11-01T00:00:00+08:00","url":"http://localhost:4200/lab/2019/11/01/lab-3.html","datePublished":"2019-11-01T00:00:00+08:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4200/lab/2019/11/01/lab-3.html"},"author":{"@type":"Person","name":"teuteuguy"},"@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/assets/css/style.css?v=e9b439637ae65e011d9f7e9bab5bec5c827ff7b2">
+    <!--[if lt IE 9]>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 style="font-size: 18px;"><a href="http://localhost:4200/">Amazon FreeRTOS Workshop</a></h1>
+        
+        
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/1280px-Amazon_Web_Services_Logo.svg.png" alt="Logo" />
+        
+
+        <p>Amazon Freertos workshop using the M5 StickC</p>
+
+        <ul class="content-menu">
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-0.html">Lab 0 - Setup</a>
+          </li>
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-1.html">Lab 1 - Create your own AWS IoT Button</a>
+          </li>
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-2.html">Lab 2 - Interract with the Thing</a>
+          </li>
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-3.html">Lab 3 - Alexa</a>
+          </li>
+          
+        </ul>
+
+        
+        <p class="view"><a href="https://github.com/teuteuguy/amazon-freertos-m5stickc-workshop">View the Project on GitHub <small>teuteuguy/amazon-freertos-m5stickc-workshop</small></a></p>
+        
+
+        
+
+        
+      </header>
+      <section>
+
+      <small>1 November 2019</small> <small>by teuteuguy</>
+<h1>Lab 3 - Alexa</h1>
+
+<p>Wouldn’t it be great if you could control your Air Conditioning unit with your voice? No need to search for the remote anymore!</p>
+
+<p>Alexa solves all of this for us. So lets create our first Alexa Skill !</p>
+
+<p>We’ll be able to ask Alexa:</p>
+
+<ul>
+  <li>Alexa turn on the aircon</li>
+  <li>Alexa turn off the aircon</li>
+</ul>
+
+<!--more-->
+
+<h2 id="preliminary">Preliminary</h2>
+
+<p>This Lab requires you to have completed <a href="lab-2.html">Lab2</a></p>
+
+<h2 id="step-1---develop-your-first-alexa-skill">Step 1. - <em>Develop your first Alexa Skill</em></h2>
+
+<p>Setting up Your Alexa Skill in the Developer Console</p>
+
+<p>Go to the <a href="https://developer.amazon.com/alexa/console/ask">Alexa Developer Console</a>. In the top-right corner of the screen, click the “Sign In” button. (If you don’t already have an account, you will be able to create a new one for free.)</p>
+
+<p><img src="/assets/images/lab3/lab3-alexa-signin.png" alt="Alexa Developer Console" /></p>
+
+<p>Once you have signed in, select the <strong>Developer Console</strong> link and then <strong>Alexa Skills Kit</strong>.
+From the Alexa Developer Console select the <strong>Create Skill</strong> button near the top-right of the list of your Alexa Skills.</p>
+
+<p><img src="/assets/images/lab3/lab3-create-alexa-skill-1.png" alt="Create Skill 1" /></p>
+
+<p>Give your new skill a Name, for example, <strong>‘workshop’</strong>. This is the name that will be shown in the Alexa Skills Store, and the name your users will refer to.</p>
+
+<p><img src="/assets/images/lab3/lab3-create-alexa-skill-2.png" alt="Create Skill 2" /></p>
+
+<p>Select the Default Language. This tutorial will presume you have selected <strong>‘English (US)’</strong>.
+Select the Custom model under the <strong>‘Choose a model to add to your skill’</strong> section. Click the <strong>Create Skill button</strong> at the top right.
+Choose <strong>Start from scratch</strong> from the Choose a template section and click the <strong>Choose</strong> button on the top right.</p>
+
+<h3 id="build-the-interaction-model-for-your-skill">Build the Interaction Model for your skill</h3>
+
+<ol>
+  <li>On the left hand navigation panel, select the <strong>JSON Editor</strong> tab under Interaction Model. In the textfield provided, replace any existing code with the code provided in the below sample. Click <strong>Save Model</strong>.</li>
+  <li>Click <strong>“Build Model”</strong></li>
+</ol>
+
+<p><img src="/assets/images/lab3/lab3-json-editor.png" alt="JSON Editor" /></p>
+
+<h3 id="skill-sample">Skill Sample</h3>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"interactionModel"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"languageModel"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"invocationName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"workshop skills"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"intents"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+                </span><span class="p">{</span><span class="w">
+                    </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AMAZON.FallbackIntent"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"samples"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w">
+                </span><span class="p">},</span><span class="w">
+                </span><span class="p">{</span><span class="w">
+                    </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AMAZON.CancelIntent"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"samples"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w">
+                </span><span class="p">},</span><span class="w">
+                </span><span class="p">{</span><span class="w">
+                    </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AMAZON.HelpIntent"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"samples"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w">
+                </span><span class="p">},</span><span class="w">
+                </span><span class="p">{</span><span class="w">
+                    </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AMAZON.StopIntent"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"samples"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w">
+                </span><span class="p">},</span><span class="w">
+                </span><span class="p">{</span><span class="w">
+                    </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AMAZON.NavigateHomeIntent"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"samples"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w">
+                </span><span class="p">},</span><span class="w">
+                </span><span class="p">{</span><span class="w">
+                    </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ThingsAlertIntent"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"slots"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+                    </span><span class="nl">"samples"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+                        </span><span class="s2">"things alert"</span><span class="w">
+                    </span><span class="p">]</span><span class="w">
+                </span><span class="p">}</span><span class="w">
+            </span><span class="p">],</span><span class="w">
+            </span><span class="nl">"types"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>We will take a pause of setting up the Alexa skills here to create the lambda function.</p>
+
+<p><img src="/assets/images/lab3/lab3-wait-for-lambda.png" alt="Wait for lambda" /></p>
+
+<h2 id="step2-build-your-alexa-skills-lambda-function">Step2 Build your Alexa Skills lambda function</h2>
+
+<p>In the management console, find lambda service</p>
+
+<p><img src="/assets/images/lab3/lab3-lambda-1.png" alt="Lambda 1" /></p>
+
+<p>navigate to lambda function service and select <strong>“Create”</strong></p>
+
+<p><img src="/assets/images/lab3/lab3-lambda-2.png" alt="Lambda 2" /></p>
+
+<p>input the params for lambda function:</p>
+
+<ul>
+  <li>function name: <strong>“alexa_workshop”</strong></li>
+  <li>Runtime: <strong>“python 3.7”</strong></li>
+  <li>Execution role: <strong>“Create a new role with basic Lambda function”</strong></li>
+</ul>
+
+<p>then <strong>“Create”</strong></p>
+
+<p><img src="/assets/images/lab3/lab3-lambda-3.png" alt="Lambda 3" /></p>
+
+<p>Next, configure the lambda function:</p>
+
+<p>First upload the lambda function zip package, you can download the code from <a href="/assets/lab3/alexa_skill_lambda_v1.zip">HERE</a>, keep the hander as <strong>“lambda_function.lambda_handler”</strong>, then slick <strong>“Save”</strong></p>
+
+<p><img src="/assets/images/lab3/lab3-lambda-4.png" alt="Lambda 4" /></p>
+
+<p>Set your device shadow update topic as an environment variable. In Environment Variables section, create an environment variable named <strong>shadow_update_topic</strong> and set it’s value to your thing’s shadow update topic. Which should be something like: <strong>$aws/things/[YOUR THING NAME]/shadow/update</strong></p>
+
+<p><img src="/assets/images/lab3/lab3-lambda-env.png" alt="Lambda env" /></p>
+
+<p>Configure the lambda function service role, and the trigger events for this lambda</p>
+
+<p>Configure the service role by navigate to the execution role</p>
+
+<p><img src="/assets/images/lab3/lab3-lambda-5.png" alt="Lambda 5" /></p>
+
+<p>configure the role policies</p>
+
+<p><img src="/assets/images/lab3/lab3-lambda-6.png" alt="Lambda 6" /></p>
+
+<p>select <strong>“AWSIoTFullAccess”</strong>, then <strong>attach</strong>,</p>
+
+<p><img src="/assets/images/lab3/lab3-lambda-7.png" alt="Lambda 7" /></p>
+
+<p>Next, we set Alexa skills as the lambda function trigger,</p>
+
+<p><img src="/assets/images/lab3/lab3-lambda-8.png" alt="Lambda 8" /></p>
+
+<p>select <strong>Alexa Skills Kit</strong></p>
+
+<p><img src="/assets/images/lab3/lab3-lambda-9.png" alt="Lambda 9" /></p>
+
+<p>Then input your skill ID</p>
+
+<p><img src="/assets/images/lab3/lab3-lambda-10.png" alt="Lambda 10" /></p>
+
+<p>to check the skill ID of your Alexa skills, go back to the Alexa develop console and navigate to your skill, to check skill ID</p>
+
+<p><img src="/assets/images/lab3/lab3-lambda-11.png" alt="Lambda 11" /></p>
+
+<p>After the configuration of IoT access, and the trigger events, your lambda configuration should look like this</p>
+
+<p><img src="/assets/images/lab3/lab3-lambda-12.png" alt="Lambda 12" /></p>
+
+<p>Now, since the lambda function is ready, you can set your “Endpoint” of your lambda skill</p>
+
+<p><img src="/assets/images/lab3/lab3-lambda-13.png" alt="Lambda 13" /></p>
+
+<h2 id="step3-configure-your-alexa-skills-endpoint">Step3 Configure your Alexa Skills endpoint</h2>
+
+<p>next we configure the Alexa skills endpoint</p>
+
+<p><img src="/assets/images/lab3/lab3-skill-1.png" alt="skill 1" /></p>
+
+<p>configure your endpoint by input the ARN of your Alexa lambda function (check the next step to copy your lambda function’s ARN), and save the Endpoints</p>
+
+<p><img src="/assets/images/lab3/lab3-skill-2.png" alt="skill 2" /></p>
+
+<p>You can find your ARN of the lambda function in your lambda function configure page</p>
+
+<p><img src="/assets/images/lab3/lab3-skill-3.png" alt="skill 3" /></p>
+
+<h2 id="step4-test-your-alexa-skills">Step4 Test Your Alexa Skills</h2>
+
+<p>now we can start to test your Alexa skills and check the interaction with your device!</p>
+
+<p>First, make sure your device is running and reporting sensor data like the following in Lab2</p>
+
+<p>Secondly, navigate to the test console to test your skills, change the mode to Development</p>
+
+<p><img src="/assets/images/lab3/lab3-test-1.png" alt="Test 1" /></p>
+
+<p>then you can input the speeches as following, this will simulate as you are talking to an Echodot or your phone</p>
+
+<p><img src="/assets/images/lab3/lab3-test-2.png" alt="Test 2" /></p>
+
+<p>If the skills response <strong>“ok! I’ve turned on the aircon”</strong>, you can now check if your board reports the on / off state accordingly</p>
+
+<p><img src="/assets/images/lab3/lab3-test-3.png" alt="Test 3" /></p>
+
+<p>Additionally, you can check your logs on the IoT Core console or looking at the shadow document for your thing</p>
+
+<p><img src="/assets/images/lab3/lab3-test-4.png" alt="Test 4" /></p>
+
+
+
+
+
+<small>categories: <em>lab</em></small>
+
+
+
+<small>tags: <em>iot-core</em> - <em>shadow</em> - <em>alexa</em></small>
+
+
+
+      </section>
+      <footer>
+        
+        <p>This project is maintained by <a href="https://github.com/teuteuguy">teuteuguy</a></p>
+        
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="/assets/js/scale.fix.js"></script>
+    
+  </body>
+</html>

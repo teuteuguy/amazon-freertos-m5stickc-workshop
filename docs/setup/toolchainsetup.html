@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>Setup toolchain for ESP32 | Amazon FreeRTOS Workshop</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Setup toolchain for ESP32" />
+<meta name="author" content="teuteuguy" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Amazon Freertos workshop using the M5 StickC" />
+<meta property="og:description" content="Amazon Freertos workshop using the M5 StickC" />
+<link rel="canonical" href="http://localhost:4200/setup/toolchainsetup.html" />
+<meta property="og:url" content="http://localhost:4200/setup/toolchainsetup.html" />
+<meta property="og:site_name" content="Amazon FreeRTOS Workshop" />
+<script type="application/ld+json">
+{"description":"Amazon Freertos workshop using the M5 StickC","publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/1280px-Amazon_Web_Services_Logo.svg.png"},"name":"teuteuguy"},"@type":"WebPage","headline":"Setup toolchain for ESP32","url":"http://localhost:4200/setup/toolchainsetup.html","author":{"@type":"Person","name":"teuteuguy"},"@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/assets/css/style.css?v=e9b439637ae65e011d9f7e9bab5bec5c827ff7b2">
+    <!--[if lt IE 9]>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 style="font-size: 18px;"><a href="http://localhost:4200/">Amazon FreeRTOS Workshop</a></h1>
+        
+        
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/1280px-Amazon_Web_Services_Logo.svg.png" alt="Logo" />
+        
+
+        <p>Amazon Freertos workshop using the M5 StickC</p>
+
+        <ul class="content-menu">
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-0.html">Lab 0 - Setup</a>
+          </li>
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-1.html">Lab 1 - Create your own AWS IoT Button</a>
+          </li>
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-2.html">Lab 2 - Interract with the Thing</a>
+          </li>
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-3.html">Lab 3 - Alexa</a>
+          </li>
+          
+        </ul>
+
+        
+        <p class="view"><a href="https://github.com/teuteuguy/amazon-freertos-m5stickc-workshop">View the Project on GitHub <small>teuteuguy/amazon-freertos-m5stickc-workshop</small></a></p>
+        
+
+        
+
+        
+      </header>
+      <section>
+
+      <h1 id="setup-toolchain-for-esp32">Setup toolchain for ESP32</h1>
+
+<h2 id="in-the-cloud9-terminal-window-install-prerequisites">In the Cloud9 Terminal window install prerequisites</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>yum <span class="nb">install </span>flex gperf
+</code></pre></div></div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>pip <span class="nb">install </span>pyserial
+</code></pre></div></div>
+
+<h2 id="download-64-bit-version-of-xtensa-esp32-toolchain">Download 64-bit version of Xtensa ESP32 toolchain:</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cd</span> ~/environment
+wget https://dl.espressif.com/dl/xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
+</code></pre></div></div>
+
+<h2 id="create-esp-directory-and-unzip-the-tar-archive-there">Create <em>esp</em> directory and unzip the tar archive there:</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> ~/environment/esp
+<span class="nb">cd</span> ~/environment/esp
+<span class="nb">tar </span>xvfz ../xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
+</code></pre></div></div>
+
+<h2 id="add-toolchain-path-to-bash_profile-path-variable">Add toolchain path to <em>~/.bash_profile</em> PATH variable</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:<span class="nv">$HOME</span>/.local/bin:<span class="nv">$HOME</span>/bin:<span class="nv">$HOME</span>/environment/esp/xtensa-esp32-elf/bin
+</code></pre></div></div>
+
+<h2 id="re-evaluate-bash_profile">Re-evaluate ~/bash_profile</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">source</span> ~/.bash_profile
+</code></pre></div></div>
+
+<h2 id="next-step">Next Step</h2>
+
+<p><a href="./iotcoresetup.html">Create your Thing</a></p>
+
+
+      </section>
+      <footer>
+        
+        <p>This project is maintained by <a href="https://github.com/teuteuguy">teuteuguy</a></p>
+        
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="/assets/js/scale.fix.js"></script>
+    
+  </body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>Create your AWS IoT Thing | Amazon FreeRTOS Workshop</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Create your AWS IoT Thing" />
+<meta name="author" content="teuteuguy" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Amazon Freertos workshop using the M5 StickC" />
+<meta property="og:description" content="Amazon Freertos workshop using the M5 StickC" />
+<link rel="canonical" href="http://localhost:4200/setup/iotcoresetup" />
+<meta property="og:url" content="http://localhost:4200/setup/iotcoresetup" />
+<meta property="og:site_name" content="Amazon FreeRTOS Workshop" />
+<script type="application/ld+json">
+{"description":"Amazon Freertos workshop using the M5 StickC","publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/1280px-Amazon_Web_Services_Logo.svg.png"},"name":"teuteuguy"},"@type":"WebPage","headline":"Create your AWS IoT Thing","url":"http://localhost:4200/setup/iotcoresetup","author":{"@type":"Person","name":"teuteuguy"},"@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/assets/css/style.css?v=e9b439637ae65e011d9f7e9bab5bec5c827ff7b2">
+    <!--[if lt IE 9]>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 style="font-size: 18px;"><a href="http://localhost:4200/">Amazon FreeRTOS Workshop</a></h1>
+        
+        
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/1280px-Amazon_Web_Services_Logo.svg.png" alt="Logo" />
+        
+
+        <p>Amazon Freertos workshop using the M5 StickC</p>
+
+        <ul class="content-menu">
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-0.html">Lab 0 - Setup</a>
+          </li>
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-1.html">Lab 1 - Create your own AWS IoT Button</a>
+          </li>
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-2.html">Lab 2 - Interract with the Thing</a>
+          </li>
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-3.html">Lab 3 - Alexa</a>
+          </li>
+          
+        </ul>
+
+        
+        <p class="view"><a href="https://github.com/teuteuguy/amazon-freertos-m5stickc-workshop">View the Project on GitHub <small>teuteuguy/amazon-freertos-m5stickc-workshop</small></a></p>
+        
+
+        
+
+        
+      </header>
+      <section>
+
+      <h1 id="create-your-aws-iot-thing">Create your AWS IoT Thing</h1>
+
+<h2 id="creating-a-thing-requires-3-main-steps">Creating a thing requires 3 main steps:</h2>
+
+<ol>
+  <li>Create a thing for the device in IoT Core</li>
+  <li>Create a certificate and attach it to the thing</li>
+  <li>Create a Policy and attach it to the certificate</li>
+</ol>
+
+<h2 id="create-a-thing-for-your-iot-device-in-aws-iot-core">Create a thing for your IoT device in AWS IoT Core</h2>
+
+<p>Navigate to IoT Core to enter AWS IoT services
+<img src="/assets/images/iotcore-0.png" alt="IoT Core 0" /></p>
+
+<p>Follow the below 3 steps to register your thing:</p>
+
+<ol>
+  <li>Before you create a thing, please select the region. please select <strong>us-east-1</strong></li>
+  <li>To Create a thing, navigate to Manager → Things</li>
+  <li>Click Create to start creation and registration of your device</li>
+</ol>
+
+<p><img src="/assets/images/iotcore-1.png" alt="IoT Core 1" /></p>
+
+<p>If this is the very first time you create a device, the following page will appear, please click “<strong>Register a thing</strong>” to get started</p>
+
+<p><img src="/assets/images/iotcore-2.png" alt="IoT Core 2" /></p>
+
+<p>In Creating AWS IoT Things page, choose <strong>“create single thing“</strong></p>
+
+<p><img src="/assets/images/iotcore-3.png" alt="IoT Core 3" /></p>
+
+<p>Input a device name of your choice and click <strong>“Next”</strong></p>
+
+<p><img src="/assets/images/iotcore-4.png" alt="IoT Core 4" /></p>
+
+<h2 id="create-a-certificate-and-attach-it-to-the-thing">Create a certificate and attach it to the thing</h2>
+
+<p>Choose One-click certificate creation</p>
+
+<p><img src="/assets/images/iotcore-5.png" alt="IoT Core 5" /></p>
+
+<p>If this is the first time you create a thing in AWS IoT, you may not have a policy for the thing. you can click “Register Thing” and attach policy later.</p>
+
+<p><img src="/assets/images/iotcore-6.png" alt="IoT Core 6" /></p>
+
+<p>So let’s see exactly what was generated.</p>
+
+<ul>
+  <li>a thing named “[YOUR CHOSEN DEVICE NAME]”</li>
+</ul>
+
+<p><img src="/assets/images/iotcore-7.png" alt="IoT Core 7" /></p>
+
+<ul>
+  <li>A certificate that is attached to the thing</li>
+</ul>
+
+<p><img src="/assets/images/iotcore-8.png" alt="IoT Core 8" /></p>
+
+<ul>
+  <li>certificates that you’ve downloaded in your local PC</li>
+</ul>
+
+<p><img src="/assets/images/iotcore-9.png" alt="IoT Core 9" /></p>
+
+<blockquote>
+  <p>Note - Do not lose this zip file, it contains your private key file which cannot be retrieved again.</p>
+</blockquote>
+
+<h2 id="create-a-policy-and-attach-it-to-the-certificate">Create a Policy and attach it to the certificate</h2>
+
+<p>Next step we will create a policy to the certificate we’ve created in the previous step
+<img src="/assets/images/iotcore-10.png" alt="IoT Core 10" />
+input the policy name and enter advanced mode to past the policies
+<img src="/assets/images/iotcore-11.png" alt="IoT Core 11" />
+copy the following policy statement into the statements</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">{</span>
+  <span class="s2">"Version"</span>: <span class="s2">"2012-10-17"</span>,
+  <span class="s2">"Statement"</span>: <span class="o">[</span>
+    <span class="o">{</span>
+      <span class="s2">"Effect"</span>: <span class="s2">"Allow"</span>,
+      <span class="s2">"Action"</span>: <span class="o">[</span>
+        <span class="s2">"iot:Publish"</span>,
+        <span class="s2">"iot:Subscribe"</span>,
+        <span class="s2">"iot:Connect"</span>,
+        <span class="s2">"iot:Receive"</span>
+      <span class="o">]</span>,
+      <span class="s2">"Resource"</span>: <span class="o">[</span>
+        <span class="s2">"*"</span>
+      <span class="o">]</span>
+    <span class="o">}</span>,
+    <span class="o">{</span>
+      <span class="s2">"Effect"</span>: <span class="s2">"Allow"</span>,
+      <span class="s2">"Action"</span>: <span class="o">[</span>
+        <span class="s2">"greengrass:*"</span>
+      <span class="o">]</span>,
+      <span class="s2">"Resource"</span>: <span class="o">[</span>
+        <span class="s2">"*"</span>
+      <span class="o">]</span>
+    <span class="o">}</span>
+  <span class="o">]</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>copy the above policy statement and create
+<img src="/assets/images/iotcore-12.png" alt="IoT Core 12" /></p>
+
+<p>After creation, in the IoT Core console, navigate to <strong>“Secure → Policies</strong>“ your policy should be there 
+<img src="/assets/images/iotcore-13.png" alt="IoT Core 13" /></p>
+
+<p>navigate to <strong>“Secure → Certificates</strong>“ 
+<img src="/assets/images/iotcore-14.png" alt="IoT Core 14" /></p>
+
+<p>In the certificate page click <strong>“Actions → Attach policy”</strong>, 
+<img src="/assets/images/iotcore-15.png" alt="IoT Core 15" /></p>
+
+<p>Select policy and attach
+<img src="/assets/images/iotcore-16.png" alt="IoT Core 16" /></p>
+
+<p>Now, check the polices of the certificate, and the policy you’ve added should be there
+<img src="/assets/images/iotcore-17.png" alt="IoT Core 17" /></p>
+
+<h2 id="next-step">Next Step</h2>
+
+<p><a href="./compileworkshopcode.html">Compile the Amazon FreeRTOS workshop code</a></p>
+
+
+
+      </section>
+      <footer>
+        
+        <p>This project is maintained by <a href="https://github.com/teuteuguy">teuteuguy</a></p>
+        
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="/assets/js/scale.fix.js"></script>
+    
+  </body>
+</html>

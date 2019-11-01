@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>Flashing Amazon FreeRTOS compiled firmware to your M5STICKC (ESP32) | Amazon FreeRTOS Workshop</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Flashing Amazon FreeRTOS compiled firmware to your M5STICKC (ESP32)" />
+<meta name="author" content="teuteuguy" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Amazon Freertos workshop using the M5 StickC" />
+<meta property="og:description" content="Amazon Freertos workshop using the M5 StickC" />
+<link rel="canonical" href="http://localhost:4200/setup/flashing" />
+<meta property="og:url" content="http://localhost:4200/setup/flashing" />
+<meta property="og:site_name" content="Amazon FreeRTOS Workshop" />
+<script type="application/ld+json">
+{"description":"Amazon Freertos workshop using the M5 StickC","publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/1280px-Amazon_Web_Services_Logo.svg.png"},"name":"teuteuguy"},"@type":"WebPage","headline":"Flashing Amazon FreeRTOS compiled firmware to your M5STICKC (ESP32)","url":"http://localhost:4200/setup/flashing","author":{"@type":"Person","name":"teuteuguy"},"@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/assets/css/style.css?v=e9b439637ae65e011d9f7e9bab5bec5c827ff7b2">
+    <!--[if lt IE 9]>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 style="font-size: 18px;"><a href="http://localhost:4200/">Amazon FreeRTOS Workshop</a></h1>
+        
+        
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/1280px-Amazon_Web_Services_Logo.svg.png" alt="Logo" />
+        
+
+        <p>Amazon Freertos workshop using the M5 StickC</p>
+
+        <ul class="content-menu">
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-0.html">Lab 0 - Setup</a>
+          </li>
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-1.html">Lab 1 - Create your own AWS IoT Button</a>
+          </li>
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-2.html">Lab 2 - Interract with the Thing</a>
+          </li>
+          
+          <li>
+            <a href="/lab/2019/11/01/lab-3.html">Lab 3 - Alexa</a>
+          </li>
+          
+        </ul>
+
+        
+        <p class="view"><a href="https://github.com/teuteuguy/amazon-freertos-m5stickc-workshop">View the Project on GitHub <small>teuteuguy/amazon-freertos-m5stickc-workshop</small></a></p>
+        
+
+        
+
+        
+      </header>
+      <section>
+
+      <h1 id="flashing-amazon-freertos-compiled-firmware-to-your-m5stickc-esp32">Flashing Amazon FreeRTOS compiled firmware to your M5STICKC (ESP32)</h1>
+
+<ol>
+  <li>
+    <p>Download and install Silicon Labs <a href="https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers">CP2104 drivers</a></p>
+  </li>
+  <li>
+    <p>Connect your ESP32 DevKitC board to the laptop using provided USB cable and identify which port it is connected to
+On Windows it will be <code class="language-plaintext highlighter-rouge">COM3</code> for example, on Mac OS typically it enumerated as <code class="language-plaintext highlighter-rouge">/dev/tty.SLAB_USBtoUART</code> and on Linux most likely <code class="language-plaintext highlighter-rouge">/dev/ttyUSB0</code></p>
+  </li>
+  <li>
+    <p>Install <a href="https://github.com/espressif/esptool">esptool</a> and flash the firware</p>
+  </li>
+</ol>
+
+<p><strong>Windows</strong></p>
+<ul>
+  <li>Download binary from <a href="https://dl.espressif.com/dl/esptool-2.3.1-windows.zip">here</a></li>
+  <li>Drop it to the subfolder that already in your PATH or add subfolder you placed esptool to your PATH variable</li>
+  <li>Open Commnd Prompt and execute following command (from the directory you places 3 downloaded files):
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>esptool --chip esp32 --port COM3 --baud 921600 --before default_reset --after hard_reset write_flash -z --flash_mode dio --flash_freq 40m --flash_size detect 0x1000 bootloader.bin 0x20000 aws_demos.bin 0x8000 partitions_example.bin
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<p><strong>Mac/Linux</strong></p>
+
+<ul>
+  <li>Install esptool.py:
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>pip <span class="nb">install </span>esptool pyserial
+</code></pre></div>    </div>
+  </li>
+  <li>IF YOU ARE RUNNING IN CLOUD9: Execute following command from the directory you placed 3 downloaded files:</li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cd</span> <span class="o">[</span>THE FOLDER WHERE YOU DOWNLOADED THE 3 FILES IN PREVIOUS STEP]
+esptool.py <span class="nt">--chip</span> esp32 <span class="nt">--port</span> /dev/tty.SLAB_USBtoUART <span class="nt">--baud</span> 921600 <span class="nt">--before</span> default_reset <span class="nt">--after</span> hard_reset write_flash <span class="nt">-z</span> <span class="nt">--flash_mode</span> dio <span class="nt">--flash_freq</span> 40m <span class="nt">--flash_size</span> detect 0x1000 bootloader.bin 0x20000 aws_demos.bin 0x8000 partitions_example.bin
+</code></pre></div></div>
+
+<ul>
+  <li>IF YOU ARE RUNNING ON YOUR LAPTOP: Execute following command from the directory you placed 3 downloaded files:</li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cd</span> ~/Downloads/cdd-workshop/demos/espressif/esp32_devkitc_esp_wrover_kit/make
+esptool.py <span class="nt">--chip</span> esp32 <span class="nt">--port</span> /dev/tty.SLAB_USBtoUART <span class="nt">--baud</span> 921600 <span class="nt">--before</span> default_reset <span class="nt">--after</span> hard_reset write_flash <span class="nt">-z</span> <span class="nt">--flash_mode</span> dio <span class="nt">--flash_freq</span> 40m <span class="nt">--flash_size</span> detect 0x1000 ./build/bootloader/bootloader.bin 0x20000 ./build/aws_demos.bin 0x8000 ./build/partitions_example.bin
+</code></pre></div></div>
+
+<ol>
+  <li>Monitor the flashing process:</li>
+</ol>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bash-3.2<span class="nv">$ </span>esptool.py <span class="nt">--chip</span> esp32 <span class="nt">--port</span> /dev/tty.SLAB_USBtoUART <span class="nt">--baud</span> 921600 <span class="nt">--before</span> default_reset <span class="nt">--after</span> hard_reset write_flash <span class="nt">-z</span> <span class="nt">--flash_mode</span> dio <span class="nt">--flash_freq</span> 40m <span class="nt">--flash_size</span> detect 0x1000 bootloader.bin 0x20000 aws_demos.bin 0x8000 partitions_example.bin
+esptool.py v2.5.1
+Serial port /dev/tty.SLAB_USBtoUART
+Connecting........__
+Chip is ESP32D0WDQ5 <span class="o">(</span>revision 1<span class="o">)</span>
+Features: WiFi, BT, Dual Core
+MAC: 24:0a:c4:23:de:7c
+Uploading stub...
+Running stub...
+Stub running...
+Changing baud rate to 921600
+Changed.
+Configuring flash size...
+Auto-detected Flash size: 4MB
+Flash params <span class="nb">set </span>to 0x0220
+Compressed 21936 bytes to 13046...
+Wrote 21936 bytes <span class="o">(</span>13046 compressed<span class="o">)</span> at 0x00001000 <span class="k">in </span>0.2 seconds <span class="o">(</span>effective 1145.0 kbit/s<span class="o">)</span>...
+Hash of data verified.
+Compressed 628432 bytes to 398564...
+Wrote 628432 bytes <span class="o">(</span>398564 compressed<span class="o">)</span> at 0x00020000 <span class="k">in </span>5.9 seconds <span class="o">(</span>effective 854.5 kbit/s<span class="o">)</span>...
+Hash of data verified.
+Compressed 3072 bytes to 119...
+Wrote 3072 bytes <span class="o">(</span>119 compressed<span class="o">)</span> at 0x00008000 <span class="k">in </span>0.0 seconds <span class="o">(</span>effective 3255.9 kbit/s<span class="o">)</span>...
+Hash of data verified.
+
+Leaving...
+Hard resetting via RTS pin...
+</code></pre></div></div>
+
+<ol>
+  <li>Monitor code execution through the serial console</li>
+</ol>
+
+<p><strong>Windows</strong></p>
+
+<p>5.1.1 Install PuTTY</p>
+
+<ul>
+  <li>You can download putty from http://www.putty.org/ or http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html</li>
+</ul>
+
+<p>5.1.2 Run Installation wizard</p>
+
+<p><img src="/assets/images/putty-installer.png" alt="Install PuTTY" /></p>
+
+<p>5.1.3 Check all options</p>
+
+<p><img src="/assets/images/putty-setup.png" alt="PuTTY Wizard" /></p>
+
+<p>5.1.4 Setup the port and speed (Port <code class="language-plaintext highlighter-rouge">COM3</code> and <code class="language-plaintext highlighter-rouge">115200</code> in our case)</p>
+
+<p><img src="/assets/images/putty-port-open.png" alt="PuTTY setup port" /></p>
+
+<p>5.1.5 Open console access to ESP32</p>
+
+<p><img src="/assets/images/putty-console-output.png" alt="PuTTY Console" /></p>
+
+<p><strong>Mac/Linux</strong></p>
+
+<p>5.2.1 Use <code class="language-plaintext highlighter-rouge">screen</code> command to see the ESP32 console:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>screen /dev/tty.SLAB_USBtoUART 115200
+</code></pre></div></div>
+
+<p>5.2.2 In order to exit screen press <code class="language-plaintext highlighter-rouge">Ctrl + A</code> and then <code class="language-plaintext highlighter-rouge">K</code></p>
+
+<h1 id="next-step">Next Step</h1>
+
+<p><a href="../index.html">BACK</a></p>
+
+
+      </section>
+      <footer>
+        
+        <p>This project is maintained by <a href="https://github.com/teuteuguy">teuteuguy</a></p>
+        
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="/assets/js/scale.fix.js"></script>
+    
+  </body>
+</html>
