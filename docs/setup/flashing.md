@@ -81,19 +81,19 @@ Hard resetting via RTS pin...
 
 5.1.2 Run Installation wizard
 
-![Install PuTTY](../assets/images/putty-installer.png)
+![Install PuTTY]({{ "/assets/images/putty-installer.png" | absolute_url }})
 
 5.1.3 Check all options
 
-![PuTTY Wizard](../assets/images/putty-setup.png)
+![PuTTY Wizard]({{ "/assets/images/putty-setup.png" | absolute_url }})
 
 5.1.4 Setup the port and speed (Port ```COM3``` and ```115200``` in our case)
 
-![PuTTY setup port](../assets/images/putty-port-open.png)
+![PuTTY setup port]({{ "/assets/images/putty-port-open.png" | absolute_url }})
 
 5.1.5 Open console access to ESP32
 
-![PuTTY Console](../assets/images/putty-console-output.png)
+![PuTTY Console]({{ "/assets/images/putty-console-output.png" | absolute_url }})
 
 
 **Mac/Linux**
@@ -108,4 +108,4 @@ screen /dev/tty.SLAB_USBtoUART 115200
 
 # Next Step
 
-[BACK](../index.html)
+[BACK]({{ "/" | absolute_url }})
