@@ -6,7 +6,7 @@ Welcome to this Amazon FreeRTOS workshop using the [M5StickC](https://docs.m5sta
 
 
 {% for p in site.posts reversed %}
-## [{{ p.title }}]({{ p.name }})
+## [{{ p.title }}]({{ p.name | absolute_url }})
 {{ p.excerpt }}
 {% endfor %}
 
