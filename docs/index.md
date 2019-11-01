@@ -5,9 +5,9 @@ layout: default
 Welcome to this Amazon FreeRTOS workshop using the [M5StickC](https://docs.m5stack.com/#/en/core/m5stickc)
 
 
-{% for page in site.pages %}
-## [{{ page.title }}](/{{ page.name}}.html)
-{{ page.excerpt }}
+{% for p in site.posts reversed %}
+## [{{ p.title }}]({{ p.name }})
+{{ p.excerpt }}
 {% endfor %}
 
 
