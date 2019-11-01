@@ -111,6 +111,17 @@ header {
   -webkit-font-smoothing:subpixel-antialiased;
 }
 
+ul.content-menu {
+  list-style: none;
+  padding-inline-start: 0px;
+}
+
+.content-menu a:hover,
+.content-menu a:focus {
+  color: orange;// #675C5C;
+  font-weight: normal;
+}
+
 ul.downloads {
   list-style:none;
   height:40px;

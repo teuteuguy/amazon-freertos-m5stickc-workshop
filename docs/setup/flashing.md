@@ -1,3 +1,6 @@
+---
+permalink: /setup/flashing
+---
 # Flashing Amazon FreeRTOS compiled firmware to your M5STICKC (ESP32) 
 
 1. Download and install Silicon Labs [CP2104 drivers](https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers)
@@ -78,19 +81,19 @@ Hard resetting via RTS pin...
 
 5.1.2 Run Installation wizard
 
-![Install PuTTY](images/putty-installer.png)
+![Install PuTTY](../assets/images/putty-installer.png)
 
 5.1.3 Check all options
 
-![PuTTY Wizard](images/putty-setup.png)
+![PuTTY Wizard](../assets/images/putty-setup.png)
 
 5.1.4 Setup the port and speed (Port ```COM3``` and ```115200``` in our case)
 
-![PuTTY setup port](images/putty-port-open.png)
+![PuTTY setup port](../assets/images/putty-port-open.png)
 
 5.1.5 Open console access to ESP32
 
-![PuTTY Console](images/putty-console-output.png)
+![PuTTY Console](../assets/images/putty-console-output.png)
 
 
 **Mac/Linux**
@@ -102,3 +105,7 @@ screen /dev/tty.SLAB_USBtoUART 115200
 ```
 
 5.2.2 In order to exit screen press ```Ctrl + A``` and then ```K```
+
+# Next Step
+
+[BACK](../index.html)

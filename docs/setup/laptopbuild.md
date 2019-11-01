@@ -1,6 +1,9 @@
 # Build the code on your laptop
 
-## Clone the repo
+## Clone the repository
+
+Main code can be found on the repository page: 
+[github.com/teuteuguy/amazon-freertos-m5stickc-workshop](https://github.com/teuteuguy/amazon-freertos-m5stickc-workshop)
 
 ```bash
 git clone https://github.com/teuteuguy/amazon-freertos-m5stickc-workshop.git --recurse-submodules workshop
@@ -12,7 +15,7 @@ git clone https://github.com/teuteuguy/amazon-freertos-m5stickc-workshop.git --r
 
 ### Create the aws\_clientcredential\_keys.h
 
-Navigate to [https://yona75.github.io/credformatter/](https://yona75.github.io/credformatter/), upload your Certificate and Private key that you downloaded in the [previous](./iotcoresetup.md) step and generate an aws\_clientcredential\_keys.h file.
+Navigate to [https://yona75.github.io/credformatter/](https://yona75.github.io/credformatter/), upload your Certificate and Private key that you downloaded in the [previous](./iotcoresetup.html) step and generate an aws\_clientcredential\_keys.h file.
 
 ### Copy aws\_clientcredential\_keys.h to project
 
@@ -26,13 +29,13 @@ Open the aws\_clientcredential.h file by double-clicking on it. And change the f
 ...
 #define clientcredentialMQTT_BROKER_ENDPOINT "[YOUR AWS IOT ENDPOINT]"
 ...
-#define clientcredentialIOT_THING_NAME "[THE THINGNAME YOU CREATED]"
+#define clientcredentialIOT_THING_NAME       "[THE THING NAME YOU CREATED]"
 ...
-#define clientcredentialWIFI_SSID       "[WILL BE PROVIDED]"
+#define clientcredentialWIFI_SSID            "[YOUR WIFI SSID]"
 ...
-#define clientcredentialWIFI_PASSWORD   "[WILL BE PROVIDED]"
+#define clientcredentialWIFI_PASSWORD        "[YOUR WIFI PASSOWRD]"
 ...
-#define clientcredentialWIFI_SECURITY   eWiFiSecurityWPA2
+#define clientcredentialWIFI_SECURITY        eWiFiSecurityWPA2
 ...
 ```
 
@@ -41,9 +44,13 @@ Open the aws\_clientcredential.h file by double-clicking on it. And change the f
 
 ## Setup the code
 
+As of now, we move the code to the amazon-freertos folder structure to maintain most of the dependencies.
+
 ```bash
 mv ./m5stickc ./amazon-freertos/vendors/espressif/boards
 ```
+
+> Note: TODO: see how to leverage cmake in order NOT to have to do this
 
 ## Connect your board to your laptop
 
@@ -70,7 +77,7 @@ make menuconfig
 * Set the serial port to: [YOUR /dev/cu....]
 * *Save* and then *Exit*
 
-![make menuconfig](images/cdd-make-menuconfig.png)
+![make menuconfig](../assets/images/cdd-make-menuconfig.png)
 
 ## Compile, flash and monitor the code
 

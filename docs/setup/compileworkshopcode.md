@@ -1,3 +1,6 @@
+---
+permalink: /setup/compileworkshopcode
+---
 # Steps to compile the workshop firmware for M5STICKC (ESP32)
 
 ## Clone the repo
@@ -13,13 +16,13 @@ git clone https://github.com/teuteuguy/amazon-freertos-m5stickc-workshop.git --r
 
 ### Create the aws\_clientcredential\_keys.h
 
-Navigate to [https://yona75.github.io/credformatter/](https://yona75.github.io/credformatter/), upload your Certificate and Private key that you downloaded in the [previous](./iotcoresetup.md) step and generate an aws\_clientcredential\_keys.h file.
+Navigate to [https://yona75.github.io/credformatter/](https://yona75.github.io/credformatter/), upload your Certificate and Private key that you downloaded in the [previous](./iotcoresetup.html) step and generate an aws\_clientcredential\_keys.h file.
 
 ### Copy aws\_clientcredential\_keys.h to project
 
 Copy the file to ~/environment/workshop/amazon-freertos/demos/include/ directory by dragging it there
 
-![Copy aws_clientcredential_keys.h](images/workshop-copy-cred-file.png)
+![Copy aws_clientcredential_keys.h](../assets/images/workshop-copy-cred-file.png)
 
 ### Edit aws_clientcredential.h
 
@@ -60,7 +63,7 @@ make menuconfig
 
 Click *Save* and then *Exit*
 
-![make menuconfig](images/cdd-make-menuconfig.png)
+![make menuconfig](../assets/images/cdd-make-menuconfig.png)
 
 ## Compile the code
 
@@ -84,12 +87,12 @@ Once compilation is done, download these 3 files to your local computer:
 * *build/partitions_example.bin*
 * *build/bootloader/bootloader.bin*
 
-![download bin files from Cloud9](images/workshop-download.png)
+![download bin files from Cloud9](../assets/images/workshop-download.png)
 
 > Note: the "build" folder is located in ~/environment/workshop/amazon-freertos/vendors/espressif/boards/m5stickc/aws_demos/build
 
 
 ## Next Step
 
-[Flash and monitor the code](./flashing.md)
+[Flash and monitor the code](./flashing.html)
 

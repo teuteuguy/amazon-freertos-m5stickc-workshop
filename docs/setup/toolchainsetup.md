@@ -38,4 +38,4 @@ source ~/.bash_profile
 
 ## Next Step
 
-[Create your Thing](./iotcoresetup.md)
+[Create your Thing](./iotcoresetup.html)
