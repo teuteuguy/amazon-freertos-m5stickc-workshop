@@ -83,8 +83,8 @@ python /home/ec2-user/environment/workshop/amazon-freertos/vendors/espressif/esp
 
 Once compilation is done, download these 3 files to your local computer:
 
-* *build/aws_demos.bin*
-* *build/partitions_example.bin*
+* *build/aws_demo.bin*
+* *build/partition-table.bin*
 * *build/bootloader/bootloader.bin*
 
 ![download bin files from Cloud9]({{ "/assets/images/workshop-download.png" | absolute_url }})
