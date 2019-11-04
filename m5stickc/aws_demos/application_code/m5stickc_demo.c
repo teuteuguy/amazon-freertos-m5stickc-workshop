@@ -37,7 +37,7 @@ static const char *TAG = "m5stickc_demo";
 /*-----------------------------------------------------------*/
 
 /* Declaration of demo functions. */
-#ifdef M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+#if defined(M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP) || defined(M5CONFIG_LAB1_AWS_IOT_BUTTON)
 #include "m5stickc_lab0_sleep.h"
 #endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
 #ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
@@ -77,14 +77,11 @@ void m5button_event_handler(void * handler_arg, esp_event_base_t base, int32_t i
     if (base == M5BUTTON_A_EVENT_BASE && id == M5BUTTON_BUTTON_CLICK_EVENT) {
         ESP_LOGI(TAG, "Button A Pressed");
         
-        #ifdef M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+#ifdef M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
         m5stickc_lab0_start();
-        #endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
-
-        #ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
-        m5stickc_lab1_start();        
-        #endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
+#endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
     }
+
     if (base == M5BUTTON_B_EVENT_BASE && id == M5BUTTON_BUTTON_HOLD_EVENT) {
         ESP_LOGI(TAG, "Button B Held");
 
@@ -161,13 +158,24 @@ esp_err_t m5stickc_demo_init(void)
     ESP_LOGI(TAG, "m5stickc_demo_init: ... done");
     ESP_LOGI(TAG, "======================================================");
 
-    #ifdef M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+#ifdef M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
     m5stickc_lab0_init();
-    #endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+#endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
 
-    #ifdef M5CONFIG_LAB2_SHADOW
+#ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
+    if (esp_sleep_get_wakeup_cause() == ESP_SLEEP_WAKEUP_EXT0)
+    {
+        m5stickc_lab1_start( m5stickc_lab0_init );
+    }
+    else
+    {
+        m5stickc_lab0_init();
+    }
+#endif
+
+#ifdef M5CONFIG_LAB2_SHADOW
     m5stickc_lab2_start();
-    #endif // M5CONFIG_LAB2_SHADOW
+#endif // M5CONFIG_LAB2_SHADOW
 
     return res;
 }

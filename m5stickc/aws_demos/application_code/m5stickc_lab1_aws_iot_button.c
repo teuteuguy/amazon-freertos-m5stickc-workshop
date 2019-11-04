@@ -159,6 +159,8 @@ void vNetworkDisconnectedCallback( const IotNetworkInterface_t * pNetworkInterfa
     ESP_LOGD(TAG, "vNetworkDisconnectedCallback");
 }
 
+labFinishCallback_t pFinishCallback = NULL;
+
 /*-----------------------------------------------------------*/
 
 /**
@@ -524,13 +526,20 @@ int m5stickc_lab1_aws_iot_button(bool awsIotMqttMode,
         _cleanupDemo();
     }
 
+    if ( pFinishCallback != NULL )
+    {
+        pFinishCallback();
+    }
+
     return status;    
 }
 
 /*-----------------------------------------------------------*/
 
-void m5stickc_lab1_start( void ) 
+void m5stickc_lab1_start( labFinishCallback_t finishCallback ) 
 {
+    pFinishCallback = finishCallback;
+
     static demoContext_t mqttDemoContext =
         {
             .networkTypes = democonfigNETWORK_TYPES,
