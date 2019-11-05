@@ -39,7 +39,9 @@ Open the aws\_clientcredential.h file by double-clicking on it. And change the f
 ...
 ```
 
-> Note: clientcredentialWIFI\_SECURITY is defined without double quotes
+> Note 1: clientcredentialWIFI\_SECURITY is defined without double quotes
+> 
+> Note 2: You can find your IoT MQTT Broker Endpoint by navigating to Settings in your IoT Management console
 
 
 ## Setup the code
