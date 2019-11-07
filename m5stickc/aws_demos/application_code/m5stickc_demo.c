@@ -49,7 +49,9 @@ static const char *TAG = "m5stickc_demo";
 
 /*-----------------------------------------------------------*/
 
-uint8_t myStickCID[6] = { 0 };
+uint8_t uM5StickCID[6] = { 0 };
+#define M5STICKC_ID_STR_LENGTH ( sizeof(uM5StickCID) * 2 + 1 )
+char strM5StickCID[M5STICKC_ID_STR_LENGTH] = "";
 
 /*-----------------------------------------------------------*/
 
@@ -58,14 +60,41 @@ void battery_refresh_timer_init(void);
 
 esp_err_t m5stickc_demo_init(void);
 
+static esp_err_t prvDeepSleep( gpio_num_t wakeup_pin );
+static void prvSleepTimerCallback( TimerHandle_t pxTimer );
+
+
+#ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
+
+IotSemaphore_t m5stickc_lab1_semaphore;
+
+#endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
+
+
 /*-----------------------------------------------------------*/
 
 esp_err_t m5stickc_demo_run(void)
 {
-    esp_err_t res = m5stickc_demo_init();
+    esp_err_t res = esp_efuse_mac_get_default(uM5StickCID);
+    int status;
 
-    esp_efuse_mac_get_default(myStickCID);
-    configPRINTF(("myStickCID: %02x%02x%02x%02x%02x%02x\n", myStickCID[0], myStickCID[1], myStickCID[2], myStickCID[3], myStickCID[4], myStickCID[5]));
+    if (res == ESP_OK)
+    {
+        int status = snprintf( strM5StickCID, M5STICKC_ID_STR_LENGTH, "%02x%02x%02x%02x%02x%02x",
+                    uM5StickCID[0], uM5StickCID[1], uM5StickCID[2], uM5StickCID[3], uM5StickCID[4], uM5StickCID[5] );
+        if( status < 0 )
+        {
+            ESP_LOGE(TAG, "Error generating the ID: %d", (int) status);
+            return ESP_FAIL;
+        }
+    }
+
+    ESP_LOGI(TAG, "myStickCID: %s", strM5StickCID);
+
+    if (res == ESP_OK)
+    {
+        res = m5stickc_demo_init();
+    }
 
     return res;
 }
@@ -74,17 +103,32 @@ esp_err_t m5stickc_demo_run(void)
 
 void m5button_event_handler(void * handler_arg, esp_event_base_t base, int32_t id, void * event_data)
 {
-    if (base == M5BUTTON_A_EVENT_BASE && id == M5BUTTON_BUTTON_CLICK_EVENT) {
-        ESP_LOGI(TAG, "Button A Pressed");
+    if (base == M5BUTTON_A_EVENT_BASE )
+    {
+
+#if defined(M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP) || defined(M5CONFIG_LAB1_AWS_IOT_BUTTON)
+        m5stickc_lab0_event();
+#endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP || M5CONFIG_LAB1_AWS_IOT_BUTTON
+
+        if ( id == M5BUTTON_BUTTON_CLICK_EVENT )
+        {
+            ESP_LOGI(TAG, "Button A Pressed");            
+        }
+        if ( id == M5BUTTON_BUTTON_HOLD_EVENT )
+        {
+            ESP_LOGI(TAG, "Button A Held");            
+        }
         
-#ifdef M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
-        m5stickc_lab0_start();
-#endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+#ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
+            IotSemaphore_Wait( &m5stickc_lab1_semaphore );
+            m5stickc_lab1_start( strM5StickCID, id );
+            IotSemaphore_Post( &m5stickc_lab1_semaphore );
+#endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
+
     }
 
     if (base == M5BUTTON_B_EVENT_BASE && id == M5BUTTON_BUTTON_HOLD_EVENT) {
         ESP_LOGI(TAG, "Button B Held");
-
         ESP_LOGI(TAG, "Restarting");
         esp_restart();
     }
@@ -96,8 +140,6 @@ esp_err_t m5stickc_demo_init(void)
 
     ESP_LOGI(TAG, "======================================================");
     ESP_LOGI(TAG, "m5stickc_demo_init: ...");
-    ESP_LOGI(TAG, "m5stickc_demo_init: democonfigDEMO_STACKSIZE: %u", democonfigDEMO_STACKSIZE);
-    ESP_LOGI(TAG, "m5stickc_demo_init: democonfigDEMO_PRIORITY:  %u", democonfigDEMO_PRIORITY);
 
     m5stickc_config_t m5config;
     m5config.power.enable_lcd_backlight = false;
@@ -140,14 +182,19 @@ esp_err_t m5stickc_demo_init(void)
 
     TFT_print((char *)"Amazon FreeRTOS", CENTER, SCREEN_LINE_1);
     TFT_print((char *)"workshop", CENTER, SCREEN_LINE_2);
+
 #ifdef M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
     TFT_print((char *)"LAB0 - SETUP & SLEEP", CENTER, SCREEN_LINE_4);
+    m5stickc_lab0_init( prvSleepTimerCallback );
 #endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
+
 #ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
     TFT_print((char *)"LAB1 - AWS IOT BUTTON", CENTER, SCREEN_LINE_4);
 #endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
+
 #ifdef M5CONFIG_LAB2_SHADOW
     TFT_print((char *)"LAB2 - THING SHADOW", CENTER, SCREEN_LINE_4);
+    m5stickc_lab2_start();
 #endif // M5CONFIG_LAB2_SHADOW
 
     TFT_drawLine(0, M5DISPLAY_HEIGHT - 13 - 3, M5DISPLAY_WIDTH, M5DISPLAY_HEIGHT - 13 - 3, TFT_ORANGE);
@@ -158,24 +205,43 @@ esp_err_t m5stickc_demo_init(void)
     ESP_LOGI(TAG, "m5stickc_demo_init: ... done");
     ESP_LOGI(TAG, "======================================================");
 
-#ifdef M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
-    m5stickc_lab0_init();
-#endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP
-
 #ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
-    if (esp_sleep_get_wakeup_cause() == ESP_SLEEP_WAKEUP_EXT0)
+
+    // Create semaphore for lab1
+    if ( !IotSemaphore_Create( &m5stickc_lab1_semaphore, 0, 1) )
     {
-        m5stickc_lab1_start( m5stickc_lab0_init );
+        ESP_LOGE( TAG, "Failed to create Lab 1 semaphore!" );
+        res = ESP_FAIL;
     }
     else
     {
-        m5stickc_lab0_init();
-    }
-#endif
+        /* Init the Semaphore to release it */
+        IotSemaphore_Post( &m5stickc_lab1_semaphore );
 
-#ifdef M5CONFIG_LAB2_SHADOW
-    m5stickc_lab2_start();
-#endif // M5CONFIG_LAB2_SHADOW
+        /* Take the Semaphore */
+        IotSemaphore_Wait( &m5stickc_lab1_semaphore );
+        
+        if (esp_sleep_get_wakeup_cause() == ESP_SLEEP_WAKEUP_EXT0)
+        {
+            // Woken up by our button
+            ESP_LOGI( TAG, "Woken up by the button!" );
+            m5stickc_lab1_init();
+            m5stickc_lab1_start( strM5StickCID, M5BUTTON_BUTTON_CLICK_EVENT );
+        }
+        else
+        {
+            // Woken up by other
+            ESP_LOGI( TAG, "Woken up by other!" );
+        }
+
+        IotSemaphore_Post( &m5stickc_lab1_semaphore );
+    }
+
+#endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
+
+#if defined(M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP) || defined(M5CONFIG_LAB1_AWS_IOT_BUTTON)
+    m5stickc_lab0_init( prvSleepTimerCallback );
+#endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP || M5CONFIG_LAB1_AWS_IOT_BUTTON
 
     return res;
 }
@@ -244,4 +310,51 @@ void battery_refresh_timer_init(void)
     xTimerStart(xBatteryRefresh, 0);
 }
 
+/*-----------------------------------------------------------*/
 
+static esp_err_t prvDeepSleep( gpio_num_t wakeup_pin )
+{
+    esp_err_t res = ESP_FAIL;
+
+#ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
+    m5stickc_lab1_cleanup();
+#endif
+
+    ESP_LOGI(TAG, "Going to DEEP SLEEP!");
+
+    res = esp_sleep_enable_ext0_wakeup( wakeup_pin, 0 );
+
+    if (res != ESP_OK)
+    {
+        return res;
+    }
+
+    res = m5power_set_sleep();
+    if (res == ESP_OK)
+    {
+        esp_deep_sleep_start();
+    }
+
+    return res;
+}
+
+static void prvSleepTimerCallback(TimerHandle_t pxTimer)
+{
+    esp_err_t res = ESP_FAIL;
+
+    ESP_LOGI(TAG, "Sleep timer callback!");
+
+#ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
+    
+    IotSemaphore_Wait( &m5stickc_lab1_semaphore );
+    IotSemaphore_Post( &m5stickc_lab1_semaphore );
+    
+#endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
+
+    res = prvDeepSleep( M5BUTTON_BUTTON_A_GPIO );
+
+    if (res != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Error setting deep sleep!");
+    }
+}
