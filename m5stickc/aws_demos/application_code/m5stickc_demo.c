@@ -106,10 +106,6 @@ void m5button_event_handler(void * handler_arg, esp_event_base_t base, int32_t i
     if (base == M5BUTTON_A_EVENT_BASE )
     {
 
-#if defined(M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP) || defined(M5CONFIG_LAB1_AWS_IOT_BUTTON)
-        m5stickc_lab0_event();
-#endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP || M5CONFIG_LAB1_AWS_IOT_BUTTON
-
         if ( id == M5BUTTON_BUTTON_CLICK_EVENT )
         {
             ESP_LOGI(TAG, "Button A Pressed");            
@@ -120,10 +116,15 @@ void m5button_event_handler(void * handler_arg, esp_event_base_t base, int32_t i
         }
         
 #ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
-            IotSemaphore_Wait( &m5stickc_lab1_semaphore );
-            m5stickc_lab1_start( strM5StickCID, id );
-            IotSemaphore_Post( &m5stickc_lab1_semaphore );
+        m5stickc_lab0_event();
+        IotSemaphore_Wait( &m5stickc_lab1_semaphore );
+        m5stickc_lab1_start( strM5StickCID, id );
+        IotSemaphore_Post( &m5stickc_lab1_semaphore );
 #endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
+
+#if defined(M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP) || defined(M5CONFIG_LAB1_AWS_IOT_BUTTON)
+        m5stickc_lab0_event();
+#endif // M5CONFIG_LAB0_DEEP_SLEEP_BUTTON_WAKEUP || M5CONFIG_LAB1_AWS_IOT_BUTTON
 
     }
 
@@ -147,14 +148,6 @@ esp_err_t m5stickc_demo_init(void)
 
     res = m5_init(&m5config);
     ESP_LOGI(TAG, "m5stickc_demo_init: m5_init ...             %s", res == ESP_OK ? "OK" : "NOK");
-    if (res != ESP_OK) return res;
-
-    res = esp_event_handler_register_with(m5_event_loop, M5BUTTON_A_EVENT_BASE, ESP_EVENT_ANY_ID, m5button_event_handler, NULL);
-    ESP_LOGI(TAG, "                    Button A registered ... %s", res == ESP_OK ? "OK" : "NOK");
-    if (res != ESP_OK) return res;
-
-    res = esp_event_handler_register_with(m5_event_loop, M5BUTTON_B_EVENT_BASE, ESP_EVENT_ANY_ID, m5button_event_handler, NULL);
-    ESP_LOGI(TAG, "                    Button B registered ... %s", res == ESP_OK ? "OK" : "NOK");
     if (res != ESP_OK) return res;
 
     TFT_FONT_ROTATE = 0;
@@ -202,6 +195,14 @@ esp_err_t m5stickc_demo_init(void)
     res = draw_battery_level();
     battery_refresh_timer_init();
 
+    res = esp_event_handler_register_with(m5_event_loop, M5BUTTON_A_EVENT_BASE, ESP_EVENT_ANY_ID, m5button_event_handler, NULL);
+    ESP_LOGI(TAG, "                    Button A registered ... %s", res == ESP_OK ? "OK" : "NOK");
+    if (res != ESP_OK) return res;
+
+    res = esp_event_handler_register_with(m5_event_loop, M5BUTTON_B_EVENT_BASE, ESP_EVENT_ANY_ID, m5button_event_handler, NULL);
+    ESP_LOGI(TAG, "                    Button B registered ... %s", res == ESP_OK ? "OK" : "NOK");
+    if (res != ESP_OK) return res;
+
     ESP_LOGI(TAG, "m5stickc_demo_init: ... done");
     ESP_LOGI(TAG, "======================================================");
 
@@ -224,14 +225,13 @@ esp_err_t m5stickc_demo_init(void)
         if (esp_sleep_get_wakeup_cause() == ESP_SLEEP_WAKEUP_EXT0)
         {
             // Woken up by our button
-            ESP_LOGI( TAG, "Woken up by the button!" );
-            m5stickc_lab1_init();
+            ESP_LOGI( TAG, "                    Woken up by the button" );
             m5stickc_lab1_start( strM5StickCID, M5BUTTON_BUTTON_CLICK_EVENT );
         }
         else
         {
             // Woken up by other
-            ESP_LOGI( TAG, "Woken up by other!" );
+            ESP_LOGI( TAG, "                    Woken up by other!" );
         }
 
         IotSemaphore_Post( &m5stickc_lab1_semaphore );
@@ -347,7 +347,6 @@ static void prvSleepTimerCallback(TimerHandle_t pxTimer)
 #ifdef M5CONFIG_LAB1_AWS_IOT_BUTTON
     
     IotSemaphore_Wait( &m5stickc_lab1_semaphore );
-    IotSemaphore_Post( &m5stickc_lab1_semaphore );
     
 #endif // M5CONFIG_LAB1_AWS_IOT_BUTTON
 

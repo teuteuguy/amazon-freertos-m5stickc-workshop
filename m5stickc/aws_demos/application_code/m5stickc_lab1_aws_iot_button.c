@@ -147,7 +147,9 @@ IotSemaphore_t cleanUpReadySem;
 IotMqttConnection_t mqttConnection = IOT_MQTT_CONNECTION_INITIALIZER;
 
 /* boolean flag for connection established */
-bool connectionEstablished = false;
+static bool connectionEstablished = false;
+
+static bool m5stickc_is_init = false;
 
 /*-----------------------------------------------------------*/
 
@@ -156,7 +158,7 @@ int m5stickc_lab1_aws_iot_button(
     const char *pIdentifier,
     void *pNetworkServerInfo, 
     void *pNetworkCredentialInfo, 
-    const IotNetworkInterface_t *pNetworkInterface, const char * pPayload);
+    const IotNetworkInterface_t *pNetworkInterface);
 
 void vNetworkConnectedCallback( bool awsIotMqttMode,
                                 const char * pIdentifier,
@@ -370,9 +372,7 @@ static int _establishMqttConnection( bool awsIotMqttMode,
  */
 static int _publishMessage( IotMqttConnection_t mqttConnection,
                             const char * pTopicName,
-                            uint16_t topicNameLength,
-                            const char * pPayload,
-                            uint16_t payloadLength )
+                            const char * pPayload)
 {
     int status = EXIT_SUCCESS;
     IotMqttError_t publishStatus = IOT_MQTT_STATUS_PENDING;
@@ -385,16 +385,17 @@ static int _publishMessage( IotMqttConnection_t mqttConnection,
 
     /* Set the common members of the publish info. */
     publishInfo.qos = IOT_MQTT_QOS_1;
-    publishInfo.topicNameLength = topicNameLength;
+    publishInfo.topicNameLength = strlen(pTopicName);
     publishInfo.pPayload = pPayload;
-    publishInfo.payloadLength = payloadLength;
+    publishInfo.payloadLength = strlen(pPayload);
     publishInfo.pTopicName = pTopicName;
     publishInfo.retryMs = PUBLISH_RETRY_MS;
     publishInfo.retryLimit = PUBLISH_RETRY_LIMIT;
 
     /* PUBLISH a message. This is an asynchronous function that notifies of
     * completion through a callback. */
-    ESP_LOGD(TAG, "Publish: %s (%u) on %s", pPayload, payloadLength, pTopicName);
+    ESP_LOGI(TAG, "Publish: %s: %s", pTopicName, pPayload );
+
     publishStatus = IotMqtt_Publish( mqttConnection, &publishInfo, 0, &publishComplete, NULL );
 
     if( publishStatus != IOT_MQTT_STATUS_PENDING )
@@ -422,31 +423,12 @@ static int _publishMessage( IotMqttConnection_t mqttConnection,
  *
  * @return `EXIT_SUCCESS` if the demo completes successfully; `EXIT_FAILURE` otherwise.
  */
-int m5stickc_lab1_aws_iot_button_single( bool awsIotMqttMode,
-                 const char * pIdentifier,
-                 void * pNetworkServerInfo,
-                 void * pNetworkCredentialInfo,
-                 const IotNetworkInterface_t * pNetworkInterface)
-{
-    return m5stickc_lab1_aws_iot_button(awsIotMqttMode, pIdentifier, pNetworkServerInfo, pNetworkCredentialInfo, pNetworkInterface,
-        PUBLISH_PAYLOAD_FORMAT_SINGLE );
-}
-int m5stickc_lab1_aws_iot_button_hold( bool awsIotMqttMode,
-                 const char * pIdentifier,
-                 void * pNetworkServerInfo,
-                 void * pNetworkCredentialInfo,
-                 const IotNetworkInterface_t * pNetworkInterface)
-{
-    return m5stickc_lab1_aws_iot_button(awsIotMqttMode, pIdentifier, pNetworkServerInfo, pNetworkCredentialInfo, pNetworkInterface,
-        PUBLISH_PAYLOAD_FORMAT_HOLD );
-}
 
 int m5stickc_lab1_aws_iot_button(bool awsIotMqttMode,
                  const char * pIdentifier,
                  void * pNetworkServerInfo,
                  void * pNetworkCredentialInfo,
-                 const IotNetworkInterface_t * pNetworkInterface,
-                 const char * payloadFormat )
+                 const IotNetworkInterface_t * pNetworkInterface )
 {
     /* Return value of this function and the exit status of this program. */
     int status = EXIT_SUCCESS;
@@ -478,6 +460,7 @@ int m5stickc_lab1_aws_iot_button(bool awsIotMqttMode,
     {
         /* Mark the MQTT connection as established. */
         connectionEstablished = true;
+        m5stickc_is_init = true;
     }
     
     // Unlook connection readiness semaphore
@@ -517,7 +500,7 @@ void m5stickc_lab1_init(void)
     static demoContext_t mqttDemoContext =
         {
             .networkTypes = democonfigNETWORK_TYPES,
-            .demoFunction = m5stickc_lab1_aws_iot_button_single,
+            .demoFunction = m5stickc_lab1_aws_iot_button,
             .networkConnectedCallback = vNetworkConnectedCallback,
             .networkDisconnectedCallback = vNetworkDisconnectedCallback
         };
@@ -534,7 +517,7 @@ void m5stickc_lab1_init(void)
         IotLogError("Failed to create clean up semaphore!");
     }
 
-    Iot_CreateDetachedThread(runDemoTask, &mqttDemoContext, democonfigDEMO_PRIORITY, democonfigDEMO_STACKSIZE);
+    Iot_CreateDetachedThread(runDemoTask, &mqttDemoContext, democonfigDEMO_PRIORITY, democonfigDEMO_STACKSIZE);    
 }
 
 /*-----------------------------------------------------------*/
@@ -542,8 +525,18 @@ void m5stickc_lab1_init(void)
 bool isConnectionReady = false;
 void m5stickc_lab1_start( const char * strID, int32_t buttonID ) 
 {
+    ESP_LOGI(TAG, "m5stickc_lab1_start: %s - %d", strID, buttonID);
+
+    if (!m5stickc_is_init)
+    {        
+        ESP_LOGI(TAG, "m5stickc_lab1_start: m5stickc_is_init %d", m5stickc_is_init);
+        ESP_LOGI(TAG, "m5stickc_lab1_start: Lab is not initialized. Init");
+        m5stickc_lab1_init();
+    }
+
     if (!isConnectionReady)
     {
+        ESP_LOGI(TAG, "m5stickc_lab1_start: isConnectionReady %d", isConnectionReady);
         IotLogInfo( "Waiting for MQTT connection ready." );
         // Wait until connection ready and destroy semaphore
         IotSemaphore_Wait( &connectionReadySem );
@@ -591,7 +584,7 @@ void m5stickc_lab1_start( const char * strID, int32_t buttonID )
     
     if( connectionEstablished )
     {
-        _publishMessage( mqttConnection, pTopic, TOPIC_BUFFER_LENGTH, pPublishPayload, publishPayloadLength );
+        _publishMessage( mqttConnection, pTopic, pPublishPayload );
     }
 }
 

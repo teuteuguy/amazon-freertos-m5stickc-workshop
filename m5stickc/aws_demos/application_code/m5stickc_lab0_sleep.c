@@ -20,7 +20,7 @@ static const char *TAG = "m5stickc_lab0_sleep";
 
 /*-----------------------------------------------------------*/
 
-static const TickType_t xSleepTimerFrequency_ms = 10000UL;
+static const TickType_t xSleepTimerFrequency_ms = 15000UL;
 static TimerHandle_t xSleepTimer;
 
 /*-----------------------------------------------------------*/
