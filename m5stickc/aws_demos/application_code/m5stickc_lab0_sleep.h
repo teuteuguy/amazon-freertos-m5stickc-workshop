@@ -8,7 +8,10 @@
 #ifndef _M5STICKC_LAB0_SLEEP_H_
 #define _M5STICKC_LAB0_SLEEP_H_
 
-void m5stickc_lab0_init(void);
-void m5stickc_lab0_start(void);
+/* Platform layer includes. */
+#include "platform/iot_clock.h"
+
+void m5stickc_lab0_init( TimerCallbackFunction_t callback );
+void m5stickc_lab0_event( void );
 
 #endif /* ifndef _M5STICKC_LAB0_SLEEP_H_ */
