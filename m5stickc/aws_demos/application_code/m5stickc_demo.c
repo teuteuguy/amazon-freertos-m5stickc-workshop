@@ -76,7 +76,6 @@ IotSemaphore_t m5stickc_lab1_semaphore;
 esp_err_t m5stickc_demo_run(void)
 {
     esp_err_t res = esp_efuse_mac_get_default(uM5StickCID);
-    int status;
 
     if (res == ESP_OK)
     {
@@ -187,7 +186,7 @@ esp_err_t m5stickc_demo_init(void)
 
 #ifdef M5CONFIG_LAB2_SHADOW
     TFT_print((char *)"LAB2 - THING SHADOW", CENTER, SCREEN_LINE_4);
-    m5stickc_lab2_start();
+    m5stickc_lab2_init(strM5StickCID);
 #endif // M5CONFIG_LAB2_SHADOW
 
     TFT_drawLine(0, M5DISPLAY_HEIGHT - 13 - 3, M5DISPLAY_WIDTH, M5DISPLAY_HEIGHT - 13 - 3, TFT_ORANGE);
