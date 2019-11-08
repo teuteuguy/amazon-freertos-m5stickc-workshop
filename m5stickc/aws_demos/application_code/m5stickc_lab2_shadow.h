@@ -8,6 +8,6 @@
 #ifndef _M5STICKC_LAB2_SHADOW_H_
 #define _M5STICKC_LAB2_SHADOW_H_
 
-void m5stickc_lab2_start( void );
+void m5stickc_lab2_init(const char *const strID);
 
 #endif /* ifndef _M5STICKC_LAB2_SHADOW_H_ */
