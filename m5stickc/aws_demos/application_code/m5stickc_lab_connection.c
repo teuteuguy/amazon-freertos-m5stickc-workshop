@@ -580,9 +580,31 @@ esp_err_t m5stickc_lab_connection_update_shadow(AwsIotShadowDocumentInfo_t *upda
 
 /*-----------------------------------------------------------*/
 
-void m5stickc_lab_connection_wait(void)
+esp_err_t m5stickc_lab_connection_publish(IotMqttPublishInfo_t * publishInfo, IotMqttCallbackInfo_t * publishComplete)
+{
+    int status = EXIT_SUCCESS;
+    IotMqttError_t publishStatus = IOT_MQTT_STATUS_PENDING;
+
+    /* PUBLISH a message. This is an asynchronous function that notifies of
+    * completion through a callback. */
+    ESP_LOGI(TAG, "Publish: %s: %s", (char *)publishInfo->pTopicName, (char *)publishInfo->pPayload);
+
+    publishStatus = IotMqtt_Publish(_mqttConnection, publishInfo, 0, publishComplete, NULL);
+
+    if (publishStatus != IOT_MQTT_STATUS_PENDING)
+    {
+        ESP_LOGE(TAG, "MQTT PUBLISH returned error %s.", IotMqtt_strerror(publishStatus));
+        status = EXIT_FAILURE;
+    }
+    
+    return status;
+}
+/*-----------------------------------------------------------*/
+
+void m5stickc_lab_connection_ready_wait(void)
 {
     IotSemaphore_Wait( &connectionReadySem );
+    IotSemaphore_Post( &connectionReadySem );
 }
 
 void m5stickc_lab_connection_cleanup(void)

@@ -129,7 +129,7 @@ static void prvAirConTimerCallback(TimerHandle_t pxTimer);
 
 /*-----------------------------------------------------------*/
 
-void vNetworkConnectedCallback(bool awsIotMqttMode,
+void vLab2NetworkConnectedCallback(bool awsIotMqttMode,
                                const char *pIdentifier,
                                void *pNetworkServerInfo,
                                void *pNetworkCredentialInfo,
@@ -142,7 +142,7 @@ void vNetworkConnectedCallback(bool awsIotMqttMode,
     xTimerStart(xAirCon, 0);
 }
 
-void vNetworkDisconnectedCallback(const IotNetworkInterface_t *pNetworkInterface)
+void vLab2NetworkDisconnectedCallback(const IotNetworkInterface_t *pNetworkInterface)
 {
     ESP_LOGI(TAG, "vNetworkDisconnectedCallback");
     m5stickc_lab_connection_cleanup();
@@ -504,199 +504,6 @@ static void prvAirConTimerCallback(TimerHandle_t pxTimer)
     }
 }
 
-/*-----------------------------------------------------------*/
-
-/**
- * @brief The function that runs the Shadow demo, called by the demo runner.
- *
- * @param[in] awsIotMqttMode Ignored for the Shadow demo.
- * @param[in] pIdentifier NULL-terminated Shadow Thing Name.
- * @param[in] pNetworkServerInfo Passed to the MQTT connect function when
- * establishing the MQTT connection for Shadows.
- * @param[in] pNetworkCredentialInfo Passed to the MQTT connect function when
- * establishing the MQTT connection for Shadows.
- * @param[in] pNetworkInterface The network interface to use for this demo.
- *
- * @return `EXIT_SUCCESS` if the demo completes successfully; `EXIT_FAILURE` otherwise.
- */
-// int m5stickc_lab_shadow_run(bool awsIotMqttMode,
-//                             const char *pIdentifier,
-//                             void *pNetworkServerInfo,
-//                             void *pNetworkCredentialInfo,
-//                             const IotNetworkInterface_t *pNetworkInterface)
-// {
-//     /* Return value of this function and the exit status of this program. */
-//     int status = 0;
-
-//     /* Handle of the MQTT connection used in this demo. */
-//     IotMqttConnection_t mqttConnection = IOT_MQTT_CONNECTION_INITIALIZER;
-
-//     /* Length of Shadow Thing Name. */
-//     size_t thingNameLength = 0;
-
-//     /* Allows the Shadow update function to wait for the delta callback to complete
-//      * a state change before continuing. */
-//     IotSemaphore_t deltaSemaphore;
-
-//     for(;;)
-//     {
-
-//         /* Flags for tracking which cleanup functions must be called. */
-//         bool librariesInitialized = false, connectionEstablished = false, deltaSemaphoreCreated = false;
-
-//         /* The first parameter of this demo function is not used. Shadows are specific
-//          * to AWS IoT, so this value is hardcoded to true whenever needed. */
-//         (void)awsIotMqttMode;
-
-//         /* Determine the length of the Thing Name. */
-//         if (pIdentifier != NULL)
-//         {
-//             thingNameLength = strlen(pIdentifier);
-
-//             if (thingNameLength == 0)
-//             {
-//                 IotLogError("The length of the Thing Name (identifier) must be nonzero.");
-
-//                 status = EXIT_FAILURE;
-//             }
-//         }
-//         else
-//         {
-//             IotLogError("A Thing Name (identifier) must be provided for the Shadow demo.");
-
-//             status = EXIT_FAILURE;
-//         }
-
-//         /* Initialize the libraries required for this demo. */
-//         if (status == EXIT_SUCCESS)
-//         {
-//             status = _initializeDemo();
-//         }
-
-//         if (status == EXIT_SUCCESS)
-//         {
-//             /* Mark the libraries as initialized. */
-//             librariesInitialized = true;
-
-//             /* Establish a new MQTT connection. */
-//             status = _establishMqttConnection(pIdentifier,
-//                                             pNetworkServerInfo,
-//                                             pNetworkCredentialInfo,
-//                                             pNetworkInterface,
-//                                             &mqttConnection);
-//         }
-//         else
-//         {
-//             ESP_LOGE(TAG, "Failed to initialize Demo: %i", status);
-//         }
-
-//         if (status == EXIT_SUCCESS)
-//         {
-//             /* Mark the MQTT connection as established. */
-//             connectionEstablished = true;
-
-//             /* Mark the connection as NOT lost. */
-//             lostConnection = false;
-
-//             /* Create the semaphore that synchronizes with the delta callback. */
-//             deltaSemaphoreCreated = IotSemaphore_Create(&deltaSemaphore, 0, 1);
-
-//             if (deltaSemaphoreCreated == false)
-//             {
-//                 status = EXIT_FAILURE;
-//             }
-//         }
-//         else
-//         {
-//             ESP_LOGE(TAG, "Failed to initialize the MQTT Connection: %i", status);
-//         }
-        
-
-//         if (status == EXIT_SUCCESS)
-//         {
-//             /* Init the Semaphore to release it */
-//             IotSemaphore_Post(&deltaSemaphore);
-
-//             timerId_t myTimerId = {
-//                 .pSemaphore = &deltaSemaphore,
-//                 .mqttConnection = mqttConnection,
-//                 .pThingName = pIdentifier,
-//                 .thingNameLength = thingNameLength};
-
-//             /* Start the AirCon */
-//             xAirCon = xTimerCreate("AirConRefresh", pdMS_TO_TICKS(xAirConRefreshTimerFrequency_ms), pdTRUE, (void *)&myTimerId, prvAirConTimerCallback);
-//             xTimerStart(xAirCon, 0);
-//         }
-//         else
-//         {
-//             ESP_LOGE(TAG, "Failed to initialize the Delta Semaphore: %i", status);
-//         }
-
-//         if (status == EXIT_SUCCESS)
-//         {
-//             IotLogInfo("Init, MQTT and Semaphore done. Setting up callbacks.");
-
-//             /* Set the Shadow callbacks for this demo. */
-//             status = _setShadowCallbacks(&deltaSemaphore,
-//                                         mqttConnection,
-//                                         pIdentifier,
-//                                         thingNameLength);
-//         }
-//         else
-//         {
-//             ESP_LOGE(TAG, "Failed to set the shadow callbacks: %i", status);
-//         }
-
-//         if (status == EXIT_SUCCESS)
-//         {
-//             /* Report Shadow. */
-//             status = _reportShadow(&deltaSemaphore, 
-//                                 mqttConnection,
-//                                 pIdentifier,
-//                                 thingNameLength);
-//         }
-//         else
-//         {
-//             ESP_LOGE(TAG, "Failed to report the shadow: %i", status);
-//         }
-
-//         while (lostConnection == false)
-//         {
-//             vTaskDelay( pdMS_TO_TICKS(5000) );
-
-//             // Have we lost connection ?
-//             if (lostConnection == true)
-//             {
-//                 break;
-//             }
-//         }
-
-//         ESP_LOGE(TAG, "Lost Connection.");
-//         ESP_LOGE(TAG, "Params: %01d, %01d, %01d", connectionEstablished, librariesInitialized, deltaSemaphoreCreated);
-
-//         /* Disconnect the MQTT connection if it was established. */
-//         if (connectionEstablished == true)
-//         {
-//             IotMqtt_Disconnect(mqttConnection, 0);
-//         }
-
-//         /* Clean up libraries if they were initialized. */
-//         if (librariesInitialized == true)
-//         {
-//             _cleanupDemo();
-//         }
-
-//         /* Destroy the delta semaphore if it was created. */
-//         if (deltaSemaphoreCreated == true)
-//         {
-//             IotSemaphore_Destroy(&deltaSemaphore);
-//         }
-
-//         vTaskDelay(pdMS_TO_TICKS(5000));
-//     }
-
-//     return status;
-// }
 
 /*-----------------------------------------------------------*/
 
@@ -706,8 +513,8 @@ void m5stickc_lab2_init(const char *const strID)
 
     connectionParams.strID = (char *)strID;
     connectionParams.useShadow = true;
-    connectionParams.networkConnectedCallback = vNetworkConnectedCallback;
-    connectionParams.networkDisconnectedCallback = vNetworkDisconnectedCallback;
+    connectionParams.networkConnectedCallback = vLab2NetworkConnectedCallback;
+    connectionParams.networkDisconnectedCallback = vLab2NetworkDisconnectedCallback;
     connectionParams.shadowDeltaCallback = _shadowDeltaCallback;
     connectionParams.shadowUpdatedCallback = _shadowUpdatedCallback;
 
