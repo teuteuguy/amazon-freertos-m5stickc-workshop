@@ -265,7 +265,7 @@ static int _reportShadow(const char *const pThingName)
 
     AwsIotShadowDocumentInfo_t updateDocument = AWS_IOT_SHADOW_DOCUMENT_INFO_INITIALIZER;
 
-    static char pUpdateDocument[EXPECTED_DESIRED_JSON_SIZE + 1] = {0};
+    static char pUpdateDocument[EXPECTED_REPORTED_JSON_SIZE + 1] = {0};
 
     /* Set the common members of the Shadow update document info. */
     updateDocument.pThingName = pThingName;
@@ -455,16 +455,15 @@ static void prvAirConTimerCallback(TimerHandle_t pxTimer)
 
     char *pThingName = (char *)pvTimerGetTimerID(pxTimer);
 
+    // Used for the screen.
     char pAirConStr[11] = {0};
-    bool change = false;
 
-    if (shadowStateReported.powerOn == 1 && 
-        shadowStateReported.temperature != shadowStateDesired.temperature)
+    if (shadowStateReported.powerOn == 1)
     {
-        if (shadowStateReported.temperature > shadowStateDesired.temperature)
+        shadowStateReported.temperature--;
+        if (shadowStateReported.temperature < shadowStateDesired.temperature)
         {
-            shadowStateReported.temperature--;
-            change = true;
+            shadowStateReported.temperature = shadowStateDesired.temperature;
         }
 
         ESP_LOGI(TAG, "Timer: AirCon is ON => Temp (%u) needs to decrease to target (%u)",
@@ -473,9 +472,7 @@ static void prvAirConTimerCallback(TimerHandle_t pxTimer)
 
         status = snprintf(pAirConStr, 11, " ON %02u", shadowStateReported.temperature);
     }
-    
-    if (shadowStateReported.powerOn == 0 &&
-        shadowStateReported.temperature != 40)
+    else
     {
         shadowStateReported.temperature++;
         if (shadowStateReported.temperature > 40)
@@ -483,25 +480,24 @@ static void prvAirConTimerCallback(TimerHandle_t pxTimer)
             shadowStateReported.temperature = 40;
         }
 
-        change = true;
-
         ESP_LOGI(TAG, "Timer: AirCon is OFF => Temp (%u) increases", shadowStateReported.temperature);
 
         status = snprintf(pAirConStr, 11, "OFF %02u", shadowStateReported.temperature);
     }
 
-    if (status >= 0 && change == true)
+    if (status >= 0)
     {
         TFT_print(pAirConStr, M5DISPLAY_WIDTH - 6 * 9, M5DISPLAY_HEIGHT - 13);
-
-        /* Report Shadow. */
-        status = _reportShadow(pThingName);
-
-        if (status != EXIT_SUCCESS)
-        {
-            IotLogError("Timer: Failed to report shadow.");
-        }
     }
+    
+    /* Report Shadow. */
+    status = _reportShadow(pThingName);
+
+    if (status != EXIT_SUCCESS)
+    {
+        IotLogError("Timer: Failed to report shadow.");
+    }
+
 }
 
 
