@@ -7,3 +7,4 @@
 	url = https://github.com/aws/amazon-freertos
 	fetchRecurseSubmodules = true
 	ignore = dirty
+	branch = release
